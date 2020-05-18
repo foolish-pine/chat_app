@@ -22,24 +22,39 @@
     <v-content>
       <v-container class="container">
         <transition-group name="chat" tag="div" class="list content">
-          <section
-            v-for="{ key, name, image, message, time } in chat"
+          <div
+            v-for="{ key, name, image, message, time, chatUid } in chat"
             :key="key"
-            class="d-flex mb-4"
           >
-            <v-avatar size="40" class="mr-2">
-              <img :src="image" width="40" height="40" />
-            </v-avatar>
-            <div>
-              <div class="body-2">{{ name }}</div>
-              <div class="d-flex align-end">
-                <v-card outlined color="#f0ffe0" class="body-1 px-2 py-1">
-                  <nl2br tag="div" :text="message" />
-                </v-card>
-                <div class="overline ml-2">{{ time }}</div>
+            <div v-if="(user.uid === chatUid)" class="d-flex justify-end mb-4">
+              <div>
+                <div class="body-2 text-end">{{ name }}</div>
+                <div class="d-flex align-end">
+                  <div class="overline mr-2">{{ time }}</div>
+                  <v-card outlined color="#f0ffe0" class="body-1 px-2 py-1">
+                    <nl2br tag="div" :text="message" />
+                  </v-card>
+                </div>
+              </div>
+              <v-avatar size="40" class="ml-2">
+                <img :src="image" width="40" height="40" />
+              </v-avatar>
+            </div>
+            <div v-else class="d-flex mb-4">
+              <v-avatar size="40" class="mr-2">
+                <img :src="image" width="40" height="40" />
+              </v-avatar>
+              <div>
+                <div class="body-2">{{ name }}</div>
+                <div class="d-flex align-end">
+                  <v-card outlined color="#f0ffe0" class="body-1 px-2 py-1">
+                    <nl2br tag="div" :text="message" />
+                  </v-card>
+                  <div class="overline ml-2">{{ time }}</div>
+                </div>
               </div>
             </div>
-          </section>
+          </div>
         </transition-group>
       </v-container>
     </v-content>
@@ -54,7 +69,7 @@
           class="mr-2"
           clearable
         ></v-text-field>
-        <v-btn type="submit" :disabled="!user.uid || submitButtonDisabled" color="primary" small>送信</v-btn>
+        <v-btn type="submit" :disabled="!user.uid" color="primary" small>送信</v-btn>
       </v-form>
       <v-spacer></v-spacer>
     </v-footer>
@@ -73,7 +88,7 @@ export default {
     return {
       user: {}, // ユーザー情報
       chat: [], // 取得したメッセージを入れる配列
-      input: "" // 入力したメッセージ
+      input: "", // 入力したメッセージ
     };
   },
   created() {
@@ -99,7 +114,6 @@ export default {
     // ログアウト処理
     doLogout() {
       firebase.auth().signOut();
-      this.$router.push({ name: "home" }, () => {})
     },
     // スクロール位置を一番下に移動
     scrollBottom() {
@@ -116,7 +130,8 @@ export default {
         name: message.name,
         image: message.image,
         message: message.message,
-        time: message.time
+        time: message.time,
+        chatUid: message.uid
       });
       this.scrollBottom();
     },
@@ -135,7 +150,8 @@ export default {
               message: this.input,
               name: this.user.displayName,
               image: this.user.photoURL,
-              time: this.time
+              time: this.time,
+              uid: this.user.uid
             },
             () => {
               this.input = ""; // フォームを空にする
