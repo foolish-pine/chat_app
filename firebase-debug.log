@@ -1,0 +1,21 @@
+[debug] [2020-05-17T10:30:44.838Z] ----------------------------------------------------------------------
+[debug] [2020-05-17T10:30:44.840Z] Command:       C:\Program Files (x86)\Nodist\v-x64\11.13.0\node.exe C:\Program Files (x86)\Nodist\bin\node_modules\firebase-tools\lib\bin\firebase.js init
+[debug] [2020-05-17T10:30:44.840Z] CLI Version:   8.2.0
+[debug] [2020-05-17T10:30:44.840Z] Platform:      win32
+[debug] [2020-05-17T10:30:44.840Z] Node Version:  v11.13.0
+[debug] [2020-05-17T10:30:44.841Z] Time:          Sun May 17 2020 19:30:44 GMT+0900 (GMT+09:00)
+[debug] [2020-05-17T10:30:44.841Z] ----------------------------------------------------------------------
+[debug] [2020-05-17T10:30:44.841Z] 
+[debug] [2020-05-17T10:30:44.846Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2020-05-17T10:30:44.847Z] > authorizing via signed-in user
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  C:\Users\takuy\Desktop\chat_app
+
