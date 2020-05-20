@@ -14,6 +14,9 @@ export default new Vuex.Store({
     setLoginUser (state, user) {
       state.user = user;
     },
+    doLogout (state) {
+      state.user = {};
+    },
     clearChat (state) {
       state.chat = [];
     },
@@ -55,11 +58,7 @@ export default new Vuex.Store({
         message: message.message,
         time: message.time,
         chatUid: message.uid
-      });
-      // スクロール位置を一番下に移動
-      this.$nextTick(() => {
-        window.scrollTo(0, document.body.clientHeight);
-      });
+      })
     }
   },
   actions: {
@@ -69,8 +68,9 @@ export default new Vuex.Store({
       firebase.auth().signInWithPopup(provider);
     },
     // ログアウト処理
-    doLogout() {
+    doLogout({commit}) {
       firebase.auth().signOut();
+      commit("doLogout");
     },
     setLoginUser ({commit}, user) {
       commit('setLoginUser', user);
