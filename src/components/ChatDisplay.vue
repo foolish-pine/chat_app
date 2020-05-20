@@ -20,7 +20,7 @@
             <v-avatar size="40" class="mt-1 mr-2">
               <img :src="image" width="40" height="40" />
             </v-avatar>
-            <div>
+            <div class="chat-message">
               <div class="body-2">{{ name }}</div>
               <div class="d-flex align-end">
                 <v-card outlined color="#f0ffe0" class="body-1 px-2 py-1">
@@ -61,6 +61,6 @@ export default {
 <style lang="scss" scoped>
 .chat-message {
   max-width: 66% !important;
-  width: 100%!important;
+  width: 100% !important;
 }
 </style>

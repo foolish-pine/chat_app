@@ -6,11 +6,18 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
   state: {
+    drawer: false,
     user: {}, // ユーザー情報
     input: "", // 入力したメッセージ
     chat: [], // 取得したメッセージを入れる配列
   },
   mutations: {
+    setDrawer(state, val) {
+      state.drawer = val;
+    },
+    toggleSideMenu(state) {
+      state.drawer = !state.drawer;
+    },
     setLoginUser (state, user) {
       state.user = user;
     },
@@ -62,6 +69,12 @@ export default new Vuex.Store({
     }
   },
   actions: {
+    setDrawer({ commit }, val) {
+      commit("setDrawer", val);
+    },
+    toggleSideMenu({ commit }) {
+      commit("toggleSideMenu");
+    },
     // ログイン処理
     doLogin() {
       const provider = new firebase.auth.GoogleAuthProvider();
@@ -90,6 +103,7 @@ export default new Vuex.Store({
   },
   getters: {
     uid: state => state.user ? state.user.uid : "",
+    displayName: state => state.user ? state.user.displayName : "",
     photoURL: state => state.user ? state.user.photoURL : "",
     input: state => state.input,
     chat: state => state.chat,

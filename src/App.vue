@@ -2,6 +2,9 @@
   <v-app>
     <header>
       <v-app-bar app dark color="#41b883" height="80">
+        <v-app-bar-nav-icon
+          @click.stop="toggleSideMenu"
+        ></v-app-bar-nav-icon>
         <v-toolbar-title class="title">Pine's Chat App</v-toolbar-title>
         <v-spacer></v-spacer>
 
@@ -18,6 +21,7 @@
         </div>
       </v-app-bar>
     </header>
+    <SideNav></SideNav>
     <router-view />
   </v-app>
 </template>
@@ -26,8 +30,12 @@
 import { mapActions } from "vuex";
 import { mapGetters } from "vuex";
 import firebase from "firebase";
+import SideNav from "./components/SideNav";
 // 改行を <br> タグに変換するモジュール
 export default {
+  components: {
+    SideNav
+  },
   data() {
     return {};
   },
@@ -50,6 +58,7 @@ export default {
   },
   methods: {
     ...mapActions([
+      "toggleSideMenu",
       "setLoginUser",
       "doLogin",
       "doLogout",
