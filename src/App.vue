@@ -68,11 +68,4 @@ export default {
   max-width: 700px !important;
   width: 100% !important;
 }
-.chat-item {
-  max-width: 75%;
-  width: 100%;
-}
-textarea {
-  overflow: hidden;
-}
 </style>
