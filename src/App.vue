@@ -2,13 +2,16 @@
   <v-app>
     <header>
       <v-app-bar app dark color="#41b883" height="80">
+        <v-app-bar-nav-icon
+          @click.stop="toggleSideMenu"
+        ></v-app-bar-nav-icon>
         <v-toolbar-title class="title">Pine's Chat App</v-toolbar-title>
         <v-spacer></v-spacer>
 
         <!-- ログイン時にはフォームとログアウトボタンを表示 -->
-        <div v-if="user.uid" key="login" class="d-flex align-center">
+        <div v-if="uid" key="login" class="d-flex align-center">
           <v-avatar size="40" class="mr-3">
-            <img :src="user.photoURL" />
+            <img :src="photoURL" />
           </v-avatar>
           <v-btn @click="doLogout" outlined>ログアウト</v-btn>
         </div>
@@ -18,149 +21,53 @@
         </div>
       </v-app-bar>
     </header>
-    <!--Firebase から取得したリストを描画（トランジション付き）-->
-    <v-content>
-      <v-container class="container">
-        <div v-for="{ key, name, image, message, time, chatUid } in chat" :key="key">
-          <div v-if="(user.uid === chatUid)" class="d-flex justify-end mb-4 ml-auto chat-item">
-            <div>
-              <div class="body-2 text-end">{{ name }}</div>
-              <div class="d-flex align-end">
-                <div class="caption mr-2">{{ time }}</div>
-                <v-card outlined color="#f0ffe0" class="body-1 px-2 py-1 message">
-                  <nl2br tag="div" :text="message" />
-                </v-card>
-              </div>
-            </div>
-            <v-avatar size="40" class="mt-1 ml-3">
-              <img :src="image" width="40" height="40" />
-            </v-avatar>
-          </div>
-          <div v-else class="d-flex mb-4 chat-item">
-            <v-avatar size="40" class="mt-1 mr-4">
-              <img :src="image" width="40" height="40" />
-            </v-avatar>
-            <div>
-              <div class="body-2">{{ name }}</div>
-              <div class="d-flex align-end">
-                <v-card outlined color="#f0ffe0" class="body-1 px-2 py-1">
-                  <nl2br tag="div" :text="message" />
-                </v-card>
-                <div class="caption ml-2">{{ time }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </v-container>
-    </v-content>
-    <v-footer app color="#f5f5f5" height="120">
-      <v-spacer></v-spacer>
-      <!-- 入力フォーム -->
-      <v-form action @submit.prevent="doSend" class="d-flex align-center container">
-        <v-textarea
-          v-model="input"
-          :disabled="!user.uid"
-          @keydown.shift.enter.exact.prevent="doSend"
-          class="mr-2"
-          outlined
-          no-resize
-          rows="2"
-          background-color="white"
-        ></v-textarea>
-        <v-btn type="submit" :disabled="!user.uid" dark color="#41b883">送信</v-btn>
-      </v-form>
-      <v-spacer></v-spacer>
-    </v-footer>
+    <SideNav></SideNav>
     <router-view />
   </v-app>
 </template>
 
 <script>
-// firebase モジュール
+import { mapActions } from "vuex";
+import { mapGetters } from "vuex";
 import firebase from "firebase";
+import SideNav from "./components/SideNav";
 // 改行を <br> タグに変換するモジュール
-import Nl2br from "vue-nl2br";
 export default {
-  components: { Nl2br },
+  components: {
+    SideNav
+  },
   data() {
-    return {
-      user: {}, // ユーザー情報
-      chat: [], // 取得したメッセージを入れる配列
-      input: "" // 入力したメッセージ
-    };
+    return {};
   },
   created() {
     firebase.auth().onAuthStateChanged(user => {
-      this.user = user ? user : {};
       const ref_message = firebase.database().ref("message");
       if (user) {
-        this.chat = [];
+        this.setLoginUser(user);
+        this.clearChat();
         // message に変更があったときのハンドラを登録
         ref_message.limitToLast(100).on("child_added", this.childAdded);
+        if (this.$router.currentRoute.name === "home")
+          this.$router.push({ name: "chat" });
       } else {
         // message に変更があったときのハンドラを解除
         ref_message.limitToLast(100).off("child_added", this.childAdded);
+        this.$router.push({ name: "home" });
       }
     });
   },
   methods: {
-    // ログイン処理
-    doLogin() {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      firebase.auth().signInWithPopup(provider);
-    },
-    // ログアウト処理
-    doLogout() {
-      firebase.auth().signOut();
-    },
-    NewLine() {
-        // 改行処理の例
-        this.input = `${this.input}\n`;
-    },
-    // スクロール位置を一番下に移動
-    scrollBottom() {
-      this.$nextTick(() => {
-        window.scrollTo(0, document.body.clientHeight);
-      });
-    },
-    // 受け取ったメッセージをchatに追加
-    // データベースに新しい要素が追加されると随時呼び出される
-    childAdded(snap) {
-      const message = snap.val();
-      this.chat.push({
-        key: snap.key,
-        name: message.name,
-        image: message.image,
-        message: message.message,
-        time: message.time,
-        chatUid: message.uid
-      });
-      this.scrollBottom();
-    },
-    doSend() {
-      if (this.user.uid && this.input.length) {
-        const now = new Date();
-        const hours = ("0" + now.getHours()).slice(-2);
-        const minutes = ("0" + now.getMinutes()).slice(-2);
-        this.time = `${hours}:${minutes}`;
-        // firebase にメッセージを追加
-        firebase
-          .database()
-          .ref("message")
-          .push(
-            {
-              message: this.input,
-              name: this.user.displayName,
-              image: this.user.photoURL,
-              time: this.time,
-              uid: this.user.uid
-            },
-            () => {
-              this.input = ""; // フォームを空にする
-            }
-          );
-      }
-    }
+    ...mapActions([
+      "toggleSideMenu",
+      "setLoginUser",
+      "doLogin",
+      "doLogout",
+      "clearChat",
+      "childAdded"
+    ])
+  },
+  computed: {
+    ...mapGetters(["uid", "photoURL"])
   }
 };
 </script>
@@ -169,12 +76,5 @@ export default {
 .container {
   max-width: 700px !important;
   width: 100% !important;
-}
-.chat-item {
-  max-width: 75%;
-  width: 100%;
-}
-textarea {
-  overflow: hidden;
 }
 </style>

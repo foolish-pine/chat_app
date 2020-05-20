@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import App from './App.vue'
+import store from './store'
 import router from './router'
 import firebase from 'firebase'
 import vuetify from './plugins/vuetify';
@@ -19,6 +20,7 @@ var firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 
 new Vue({
+  store,
   router,
   vuetify,
   render: h => h(App)
