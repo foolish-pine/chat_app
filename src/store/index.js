@@ -10,6 +10,7 @@ export default new Vuex.Store({
     user: {}, // ユーザー情報
     input: "", // 入力したメッセージ
     chat: [], // 取得したメッセージを入れる配列
+    messages: []
   },
   mutations: {
     setDrawer(state, val) {
@@ -21,52 +22,22 @@ export default new Vuex.Store({
     setLoginUser (state, user) {
       state.user = user;
     },
+    clearMessages (state) {
+      state.messages = [];
+    },
     doLogout (state) {
       state.user = {};
-    },
-    clearChat (state) {
-      state.chat = [];
     },
     doUpdateInput (state, {input}) {
       state.input = input;
     },
-    doSend (state) {
-      if (state.user.uid && state.input.length) {
-        const now = new Date();
-        const hours = ("0" + now.getHours()).slice(-2);
-        const minutes = ("0" + now.getMinutes()).slice(-2);
-        this.time = `${hours}:${minutes}`;
-        // firebase にメッセージを追加
-        firebase
-          .database()
-          .ref("message")
-          .push(
-            {
-              message: state.input,
-              name: state.user.displayName,
-              image: state.user.photoURL,
-              time: this.time,
-              uid: state.user.uid
-            },
-            () => {
-              state.input = ""; // フォームを空にする
-            }
-          );
-      }
+    addMessage (state, { id, message }) {
+      message.id = id
+      state.messages.push(message)
     },
-    // 受け取ったメッセージをchatに追加
-    // データベースに新しい要素が追加されると随時呼び出される
-    childAdded(state, snap) {
-      const message = snap.val();
-      state.chat.push({
-        key: snap.key,
-        name: message.name,
-        image: message.image,
-        message: message.message,
-        time: message.time,
-        chatUid: message.uid
-      })
-    }
+    doSend (state) {
+      state.input = ""; // フォームを空にする
+    },
   },
   actions: {
     setDrawer({ commit }, val) {
@@ -88,17 +59,38 @@ export default new Vuex.Store({
     setLoginUser ({commit}, user) {
       commit('setLoginUser', user);
     },
-    clearChat ({commit}) {
-      commit('clearChat');
+    clearMessages ({commit}) {
+      commit('clearMessages');
     },
     doUpdateInput ({commit}, {input}) {
       commit('doUpdateInput', {input});
     },
-    doSend ({commit}) {
+    doSend ({getters, commit}) {
+      if (getters.uid && getters.input.length) {
+        const now = new Date();
+        const hours = ("0" + now.getHours()).slice(-2);
+        const minutes = ("0" + now.getMinutes()).slice(-2);
+        this.timestamp = now.getTime();
+        this.posttime = `${hours}:${minutes}`;
+        // firebase にメッセージを追加
+        firebase.firestore().collection(`users/${getters.uid}/rooms/1/messages`)
+          .add(
+            {
+              message: getters.input,
+              name: getters.displayName,
+              image: getters.photoURL,
+              timestamp: this.timestamp,
+              posttime: this.posttime,
+              uid: getters.uid
+            }
+          );
       commit('doSend');
+      }
     },
-    childAdded ({commit}, snap) {
-      commit('childAdded', snap);
+    fetchMessages ({getters, commit}) {
+      firebase.firestore().collection(`users/${getters.uid}/rooms/1/messages`).orderBy('timestamp', 'asc').onSnapshot(snapshot => {
+        snapshot.forEach(doc => commit('addMessage',  { id: doc.id, message:  doc.data() }))
+      })
     }
   },
   getters: {

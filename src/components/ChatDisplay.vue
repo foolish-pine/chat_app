@@ -1,8 +1,8 @@
 <template>
     <v-content>
       <v-container>
-        <div v-for="{ key, name, image, message, time, chatUid } in chat" :key="key">
-          <div v-if="(uid === chatUid)" class="d-flex justify-end mb-4 ml-auto">
+        <div v-for="{ key, name, image, message, time, uid } in $store.state.messages" :key="key">
+          <div v-if="(uid === uid)" class="d-flex justify-end mb-4 ml-auto">
             <div class="chat-message">
               <div class="body-2 text-end">{{ name }}</div>
               <div class="d-flex align-end justify-end">
@@ -43,7 +43,8 @@ export default {
   name: "ChatDisplay",
   components: { Nl2br },
   data() {
-    return {};
+    return {
+    };
   },
   methods: {
   },
@@ -53,7 +54,7 @@ export default {
     });
   },
   computed: {
-    ...mapGetters(["uid", "chat"])
+    ...mapGetters(["uid"])
   }
 };
 </script>
