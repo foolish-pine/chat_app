@@ -42,11 +42,11 @@ export default {
     firebase.auth().onAuthStateChanged(user => {
       if (user) {
         this.setLoginUser(user);
-        this.clearMessages().then(this.fetchMessages())
+        this.fetchRooms()
+        this.fetchMessages()
         if (this.$router.currentRoute.name === "home")
           this.$router.push({ name: "room", params: { room_id: 1 } });
       } else {
-        // message に変更があったときのハンドラを解除
         this.doLogout(user)
         this.$router.push({ name: "home" });
       }
@@ -59,7 +59,8 @@ export default {
       "doLogin",
       "doLogout",
       "fetchMessages",
-      "clearMessages"
+      "clearMessages",
+      "fetchRooms"
     ])
   },
   computed: {

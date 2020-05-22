@@ -9,8 +9,9 @@ export default new Vuex.Store({
     drawer: false,
     user: {}, // ユーザー情報
     input: "", // 入力したメッセージ
-    chat: [], // 取得したメッセージを入れる配列
-    messages: []
+    messages: [],
+    roomId: "1",
+    rooms: []
   },
   mutations: {
     setDrawer(state, val) {
@@ -31,13 +32,19 @@ export default new Vuex.Store({
     doUpdateInput (state, {input}) {
       state.input = input;
     },
-    addMessage (state, { id, message }) {
-      message.id = id
-      state.messages.push(message)
+    addMessage (state, { id, fetchedMessage }) {
+      fetchedMessage.id = id
+        state.messages.push(fetchedMessage)
     },
     doSend (state) {
       state.input = ""; // フォームを空にする
     },
+    changeRoomId (state, roomid) {
+      state.roomId = roomid
+    },
+    fetchRooms (state, {id, name, room_id}) {
+      state.rooms.push({id, name, room_id})
+    }
   },
   actions: {
     setDrawer({ commit }, val) {
@@ -73,7 +80,7 @@ export default new Vuex.Store({
         this.timestamp = now.getTime();
         this.posttime = `${hours}:${minutes}`;
         // firebase にメッセージを追加
-        firebase.firestore().collection(`users/${getters.uid}/rooms/1/messages`)
+        firebase.firestore().collection(`users/${getters.uid}/rooms/${getters.roomId}/messages`)
           .add(
             {
               message: getters.input,
@@ -87,9 +94,19 @@ export default new Vuex.Store({
       commit('doSend');
       }
     },
-    fetchMessages ({getters, commit}) {
-      firebase.firestore().collection(`users/${getters.uid}/rooms/1/messages`).orderBy('timestamp', 'asc').onSnapshot(snapshot => {
-        snapshot.forEach(doc => commit('addMessage',  { id: doc.id, message:  doc.data() }))
+    fetchMessages ({getters, dispatch, commit}) {
+        firebase.firestore().collection(`users/${getters.uid}/rooms/${getters.roomId}/messages`).orderBy('timestamp', 'asc').onSnapshot(snapshot => {
+          dispatch('clearMessages')
+          snapshot.forEach(doc => commit('addMessage',  { id: doc.id, fetchedMessage:  doc.data() }))
+        })
+    },
+    changeRoomId ({dispatch, commit}, roomid) {
+      commit('changeRoomId', roomid)
+      dispatch('fetchMessages')
+    },
+    fetchRooms ({getters, commit}) {
+      firebase.firestore().collection(`users/${getters.uid}/rooms`).onSnapshot(snapshot => {
+        snapshot.forEach(doc => commit('fetchRooms',  {id: doc.id, name: doc.get('name'), room_id: doc.get('room_id')}))
       })
     }
   },
@@ -98,6 +115,6 @@ export default new Vuex.Store({
     displayName: state => state.user ? state.user.displayName : "",
     photoURL: state => state.user ? state.user.photoURL : "",
     input: state => state.input,
-    chat: state => state.chat,
+    roomId: state => state.roomId,
   }
 });
