@@ -10,8 +10,8 @@ export default new Vuex.Store({
     user: {}, // ユーザー情報
     input: "", // 入力したメッセージ
     messages: [],
-    roomId: "1",
-    rooms: []
+    myRooms: [],
+    currentRoomId: ""
   },
   mutations: {
     setDrawer(state, val) {
@@ -26,6 +26,9 @@ export default new Vuex.Store({
     clearMessages (state) {
       state.messages = [];
     },
+    clearMyRooms (state) {
+      state.myRooms = [];
+    },
     doLogout (state) {
       state.user = {};
     },
@@ -39,11 +42,11 @@ export default new Vuex.Store({
     doSend (state) {
       state.input = ""; // フォームを空にする
     },
-    changeRoomId (state, roomid) {
-      state.roomId = roomid
+    fetchMyRooms (state, {name, roomId}) {
+      state.myRooms.push({name, roomId})
     },
-    fetchRooms (state, {id, name, room_id}) {
-      state.rooms.push({id, name, room_id})
+    changeCurrentRoomId (state, roomId) {
+      state.currentRoomId = roomId
     }
   },
   actions: {
@@ -69,6 +72,9 @@ export default new Vuex.Store({
     clearMessages ({commit}) {
       commit('clearMessages');
     },
+    clearMyRooms ({commit}) {
+      commit('clearMyRooms');
+    },
     doUpdateInput ({commit}, {input}) {
       commit('doUpdateInput', {input});
     },
@@ -80,7 +86,7 @@ export default new Vuex.Store({
         this.timestamp = now.getTime();
         this.posttime = `${hours}:${minutes}`;
         // firebase にメッセージを追加
-        firebase.firestore().collection(`users/${getters.uid}/rooms/${getters.roomId}/messages`)
+        firebase.firestore().collection(`rooms/${getters.currentRoomId}/messages`)
           .add(
             {
               message: getters.input,
@@ -95,26 +101,35 @@ export default new Vuex.Store({
       }
     },
     fetchMessages ({getters, dispatch, commit}) {
-        firebase.firestore().collection(`users/${getters.uid}/rooms/${getters.roomId}/messages`).orderBy('timestamp', 'asc').onSnapshot(snapshot => {
+        firebase.firestore().collection(`rooms/${getters.currentRoomId}/messages`).orderBy('timestamp', 'asc').onSnapshot(snapshot => {
           dispatch('clearMessages')
           snapshot.forEach(doc => commit('addMessage',  { id: doc.id, fetchedMessage:  doc.data() }))
         })
     },
-    changeRoomId ({dispatch, commit}, roomid) {
-      commit('changeRoomId', roomid)
-      dispatch('fetchMessages')
+    fetchMyRooms ({getters, dispatch, commit}) {
+        firebase.firestore().collection(`rooms`)
+        .onSnapshot(snapshot => {
+          dispatch('clearMyRooms')
+          snapshot.forEach(doc => {
+            if (doc.get('members').includes(getters.uid)) {
+              commit('fetchMyRooms', { name: doc.get('name'), roomId: doc.get('roomId')})
+            }
+          })
+        })
     },
-    fetchRooms ({getters, commit}) {
-      firebase.firestore().collection(`users/${getters.uid}/rooms`).onSnapshot(snapshot => {
-        snapshot.forEach(doc => commit('fetchRooms',  {id: doc.id, name: doc.get('name'), room_id: doc.get('room_id')}))
+    changeRoomAndFetchMessages ({dispatch, commit}, roomId) {
+      firebase.firestore().collection(`rooms/${roomId}/messages`).orderBy('timestamp', 'asc').onSnapshot(snapshot => {
+        dispatch('clearMessages')
+        commit('changeCurrentRoomId', roomId)
+        snapshot.forEach(doc => commit('addMessage', { id: doc.id, fetchedMessage:  doc.data() }))
       })
-    }
+  },
   },
   getters: {
     uid: state => state.user ? state.user.uid : "",
     displayName: state => state.user ? state.user.displayName : "",
     photoURL: state => state.user ? state.user.photoURL : "",
     input: state => state.input,
-    roomId: state => state.roomId,
+    currentRoomId: state => state.currentRoomId,
   }
 });

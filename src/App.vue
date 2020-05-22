@@ -2,7 +2,7 @@
   <v-app>
     <header>
       <v-app-bar app dark color="#41b883" height="80">
-        <v-app-bar-nav-icon @click.stop="toggleSideMenu"></v-app-bar-nav-icon>
+        <v-app-bar-nav-icon v-show="$store.state.user.uid" @click.stop="toggleSideMenu"></v-app-bar-nav-icon>
         <v-toolbar-title class="title">Pine's Chat App</v-toolbar-title>
         <v-spacer></v-spacer>
 
@@ -42,10 +42,10 @@ export default {
     firebase.auth().onAuthStateChanged(user => {
       if (user) {
         this.setLoginUser(user);
-        this.fetchRooms()
-        this.fetchMessages()
-        if (this.$router.currentRoute.name === "home")
-          this.$router.push({ name: "room", params: { room_id: 1 } });
+        this.fetchMyRooms()
+        if (this.$router.currentRoute.name !== 'home') {
+          this.$router.push({ name: "home" })
+        }
       } else {
         this.doLogout(user)
         this.$router.push({ name: "home" });
@@ -59,12 +59,11 @@ export default {
       "doLogin",
       "doLogout",
       "fetchMessages",
-      "clearMessages",
-      "fetchRooms"
+      "fetchMyRooms",
     ])
   },
   computed: {
-    ...mapGetters(["uid", "photoURL"])
+    ...mapGetters(["uid", "photoURL", "currentRoomId"])
   }
 };
 </script>

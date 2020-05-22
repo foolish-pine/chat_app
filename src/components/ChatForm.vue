@@ -26,13 +26,16 @@ import { mapGetters } from "vuex";
 export default {
   name: "ChatForm",
   data() {
-    return {};
+    return {
+    };
+  },
+  created () {
   },
   methods: {
     ...mapActions(["doUpdateInput", "doSend"]),
     onInput(value) {
       this.doUpdateInput({ input: value });
-    }
+    },
   },
   computed: {
     ...mapGetters(["uid", "input"])
