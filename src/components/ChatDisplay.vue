@@ -1,12 +1,12 @@
 <template>
     <v-content>
       <v-container>
-        <div v-for="{ key, name, image, message, time, chatUid } in chat" :key="key">
-          <div v-if="(uid === chatUid)" class="d-flex justify-end mb-4 ml-auto">
+        <div v-for="{ id, name, image, message, posttime, uid } in $store.state.messages" :key="id">
+          <div v-if="(uid === $store.state.user.uid)" class="d-flex justify-end mb-4 ml-auto">
             <div class="chat-message">
               <div class="body-2 text-end">{{ name }}</div>
               <div class="d-flex align-end justify-end">
-                <div class="caption mr-2">{{ time }}</div>
+                <div class="caption mr-2">{{ posttime }}</div>
                 <v-card outlined color="#f0ffe0" class="body-1 px-2 py-1">
                   <nl2br tag="div" :text="message" />
                 </v-card>
@@ -26,7 +26,7 @@
                 <v-card outlined color="#f0ffe0" class="body-1 px-2 py-1">
                   <nl2br tag="div" :text="message" />
                 </v-card>
-                <div class="caption ml-2">{{ time }}</div>
+                <div class="caption ml-2">{{ posttime }}</div>
               </div>
             </div>
           </div>
@@ -36,14 +36,14 @@
 </template>
 
 <script>
-import { mapGetters } from "vuex";
 // 改行を <br> タグに変換するモジュール
 import Nl2br from "vue-nl2br";
 export default {
   name: "ChatDisplay",
   components: { Nl2br },
   data() {
-    return {};
+    return {
+    };
   },
   methods: {
   },
@@ -52,9 +52,6 @@ export default {
       window.scrollTo(0, document.body.clientHeight);
     });
   },
-  computed: {
-    ...mapGetters(["uid", "chat"])
-  }
 };
 </script>
 

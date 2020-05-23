@@ -13,8 +13,8 @@ const routes = [
     component: Home
   },
   {
-    path: "/chat",
-    name: "chat",
+    path: "/rooms/:roomId?",
+    name: "room",
     component: Chat
   }
 ];

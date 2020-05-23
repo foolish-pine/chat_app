@@ -9,7 +9,9 @@ export default new Vuex.Store({
     drawer: false,
     user: {}, // ユーザー情報
     input: "", // 入力したメッセージ
-    chat: [], // 取得したメッセージを入れる配列
+    messages: [],
+    myRooms: [],
+    currentRoomId: ""
   },
   mutations: {
     setDrawer(state, val) {
@@ -21,52 +23,31 @@ export default new Vuex.Store({
     setLoginUser (state, user) {
       state.user = user;
     },
+    clearMessages (state) {
+      state.messages = [];
+    },
+    clearMyRooms (state) {
+      state.myRooms = [];
+    },
     doLogout (state) {
       state.user = {};
-    },
-    clearChat (state) {
-      state.chat = [];
     },
     doUpdateInput (state, {input}) {
       state.input = input;
     },
-    doSend (state) {
-      if (state.user.uid && state.input.length) {
-        const now = new Date();
-        const hours = ("0" + now.getHours()).slice(-2);
-        const minutes = ("0" + now.getMinutes()).slice(-2);
-        this.time = `${hours}:${minutes}`;
-        // firebase にメッセージを追加
-        firebase
-          .database()
-          .ref("message")
-          .push(
-            {
-              message: state.input,
-              name: state.user.displayName,
-              image: state.user.photoURL,
-              time: this.time,
-              uid: state.user.uid
-            },
-            () => {
-              state.input = ""; // フォームを空にする
-            }
-          );
-      }
+    addMessage (state, { id, fetchedMessage }) {
+      fetchedMessage.id = id
+        state.messages.push(fetchedMessage)
     },
-    // 受け取ったメッセージをchatに追加
-    // データベースに新しい要素が追加されると随時呼び出される
-    childAdded(state, snap) {
-      const message = snap.val();
-      state.chat.push({
-        key: snap.key,
-        name: message.name,
-        image: message.image,
-        message: message.message,
-        time: message.time,
-        chatUid: message.uid
-      })
-    }
+    doSend (state) {
+      state.input = ""; // フォームを空にする
+    },
+    fetchMyRooms (state, {roomName, roomId}) {
+      state.myRooms.push({roomName, roomId})
+    },
+    changeCurrentRoomId (state, roomId) {
+      state.currentRoomId = roomId
+    },
   },
   actions: {
     setDrawer({ commit }, val) {
@@ -88,24 +69,79 @@ export default new Vuex.Store({
     setLoginUser ({commit}, user) {
       commit('setLoginUser', user);
     },
-    clearChat ({commit}) {
-      commit('clearChat');
+    clearMessages ({commit}) {
+      commit('clearMessages');
+    },
+    clearMyRooms ({commit}) {
+      commit('clearMyRooms');
     },
     doUpdateInput ({commit}, {input}) {
       commit('doUpdateInput', {input});
     },
-    doSend ({commit}) {
+    doSend ({getters, commit}) {
+      if (getters.uid && getters.input.length) {
+        const now = new Date();
+        const hours = ("0" + now.getHours()).slice(-2);
+        const minutes = ("0" + now.getMinutes()).slice(-2);
+        this.timestamp = now.getTime();
+        this.posttime = `${hours}:${minutes}`;
+        // firebase にメッセージを追加
+        firebase.firestore().collection(`rooms/${getters.currentRoomId}/messages`)
+          .add(
+            {
+              message: getters.input,
+              name: getters.displayName,
+              image: getters.photoURL,
+              timestamp: this.timestamp,
+              posttime: this.posttime,
+              uid: getters.uid
+            }
+          );
       commit('doSend');
+      }
     },
-    childAdded ({commit}, snap) {
-      commit('childAdded', snap);
-    }
+    fetchMessages ({getters, dispatch, commit}) {
+        firebase.firestore().collection(`rooms/${getters.currentRoomId}/messages`).orderBy('timestamp', 'asc').onSnapshot(snapshot => {
+          dispatch('clearMessages')
+          snapshot.forEach(doc => commit('addMessage',  { id: doc.id, fetchedMessage:  doc.data() }))
+        })
+    },
+    fetchMyRooms ({getters, dispatch, commit}) {
+        firebase.firestore().collection(`rooms`)
+        .onSnapshot(snapshot => {
+          dispatch('clearMyRooms')
+          snapshot.forEach(doc => {
+            if (doc.get('members').includes(getters.uid)) {
+              commit('fetchMyRooms', { roomName: doc.get('roomName'), roomId: doc.get('roomId')})
+            }
+          })
+        })
+    },
+    joinAnoterRoom ({getters}, {searchedId, searchedRoomPassword}) {
+        firebase.firestore().collection(`rooms`)
+        .onSnapshot(snapshot => {
+          snapshot.forEach(doc => {
+            if (doc.get('roomId') === searchedId && doc.get('roomPassword') === searchedRoomPassword) {
+              firebase.firestore().collection(`rooms`).doc(doc.get('roomId')).update({
+                members: firebase.firestore.FieldValue.arrayUnion(getters.uid)
+              })
+            }
+          })
+        })
+    },
+    changeRoomAndFetchMessages ({dispatch, commit}, roomId) {
+      firebase.firestore().collection(`rooms/${roomId}/messages`).orderBy('timestamp', 'asc').onSnapshot(snapshot => {
+        dispatch('clearMessages')
+        commit('changeCurrentRoomId', roomId)
+        snapshot.forEach(doc => commit('addMessage', { id: doc.id, fetchedMessage:  doc.data() }))
+      })
+    },
   },
   getters: {
     uid: state => state.user ? state.user.uid : "",
     displayName: state => state.user ? state.user.displayName : "",
     photoURL: state => state.user ? state.user.photoURL : "",
     input: state => state.input,
-    chat: state => state.chat,
+    currentRoomId: state => state.currentRoomId,
   }
 });

@@ -2,9 +2,7 @@
   <v-app>
     <header>
       <v-app-bar app dark color="#41b883" height="80">
-        <v-app-bar-nav-icon
-          @click.stop="toggleSideMenu"
-        ></v-app-bar-nav-icon>
+        <v-app-bar-nav-icon v-show="$store.state.user.uid" @click.stop="toggleSideMenu"></v-app-bar-nav-icon>
         <v-toolbar-title class="title">Pine's Chat App</v-toolbar-title>
         <v-spacer></v-spacer>
 
@@ -37,21 +35,19 @@ export default {
     SideNav
   },
   data() {
-    return {};
+    return {
+    };
   },
   created() {
     firebase.auth().onAuthStateChanged(user => {
-      const ref_message = firebase.database().ref("message");
       if (user) {
         this.setLoginUser(user);
-        this.clearChat();
-        // message に変更があったときのハンドラを登録
-        ref_message.limitToLast(100).on("child_added", this.childAdded);
-        if (this.$router.currentRoute.name === "home")
-          this.$router.push({ name: "chat" });
+        this.fetchMyRooms()
+        if (this.$router.currentRoute.name !== 'home') {
+          this.$router.push({ name: "home" })
+        }
       } else {
-        // message に変更があったときのハンドラを解除
-        ref_message.limitToLast(100).off("child_added", this.childAdded);
+        this.doLogout(user)
         this.$router.push({ name: "home" });
       }
     });
@@ -62,12 +58,12 @@ export default {
       "setLoginUser",
       "doLogin",
       "doLogout",
-      "clearChat",
-      "childAdded"
+      "fetchMessages",
+      "fetchMyRooms",
     ])
   },
   computed: {
-    ...mapGetters(["uid", "photoURL"])
+    ...mapGetters(["uid", "photoURL", "currentRoomId"])
   }
 };
 </script>
