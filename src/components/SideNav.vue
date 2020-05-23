@@ -144,6 +144,8 @@ export default {
     joinRoom({ searchedId, searchedRoomPassword }) {
       this.joinDialog = false;
       this.joinAnoterRoom({ searchedId, searchedRoomPassword });
+      this.searchedId = "";
+      this.searchedRoomPassword = "";
     },
     newRoom(roomName, roomId, roomPassword) {
       this.newDialog = false;
@@ -151,15 +153,16 @@ export default {
         .firestore()
         .collection(`rooms`)
         .doc(roomId)
-        .set(
-          {
-            roomName: roomName,
-            roomId: roomId,
-            roomPassword: roomPassword,
-            members: [this.uid],
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-          }
-        );
+        .set({
+          roomName: roomName,
+          roomId: roomId,
+          roomPassword: roomPassword,
+          members: [this.uid],
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      this.roomName = "";
+      this.roomId = "";
+      this.roomPassword = "";
     }
   },
   computed: {
