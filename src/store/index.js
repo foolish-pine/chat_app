@@ -11,6 +11,7 @@ export default new Vuex.Store({
     input: "", // 入力したメッセージ
     messages: [],
     myRooms: [],
+    currentRoomName: "",
     currentRoomId: ""
   },
   mutations: {
@@ -44,6 +45,9 @@ export default new Vuex.Store({
     },
     fetchMyRooms (state, {roomName, roomId}) {
       state.myRooms.push({roomName, roomId})
+    },
+    changeCurrentRoomName (state, roomName) {
+      state.currentRoomName = roomName
     },
     changeCurrentRoomId (state, roomId) {
       state.currentRoomId = roomId
@@ -132,9 +136,13 @@ export default new Vuex.Store({
     changeRoomAndFetchMessages ({dispatch, commit}, roomId) {
       firebase.firestore().collection(`rooms/${roomId}/messages`).orderBy('timestamp', 'asc').onSnapshot(snapshot => {
         dispatch('clearMessages')
+        dispatch('changeCurrentRoomName', roomId)
         commit('changeCurrentRoomId', roomId)
         snapshot.forEach(doc => commit('addMessage', { id: doc.id, fetchedMessage:  doc.data() }))
       })
+    },
+    changeCurrentRoomName ({commit}, roomId) {
+      firebase.firestore().collection(`rooms`).doc(roomId).get().then(doc => { commit('changeCurrentRoomName', doc.data().roomName) })
     },
   },
   getters: {
@@ -142,6 +150,7 @@ export default new Vuex.Store({
     displayName: state => state.user ? state.user.displayName : "",
     photoURL: state => state.user ? state.user.photoURL : "",
     input: state => state.input,
+    currentRoomName: state => state.currentRoomName,
     currentRoomId: state => state.currentRoomId,
   }
 });

@@ -3,7 +3,7 @@
     <header>
       <v-app-bar app dark color="#41b883" height="80">
         <v-app-bar-nav-icon v-show="$store.state.user.uid" @click.stop="toggleSideMenu"></v-app-bar-nav-icon>
-        <v-toolbar-title class="title">Pine's Chat App</v-toolbar-title>
+        <v-toolbar-title class="title">{{ $store.state.currentRoomName }}</v-toolbar-title>
         <v-spacer></v-spacer>
 
         <!-- ログイン時にはフォームとログアウトボタンを表示 -->
@@ -42,12 +42,12 @@ export default {
     firebase.auth().onAuthStateChanged(user => {
       if (user) {
         this.setLoginUser(user);
-        this.fetchMyRooms()
-        if (this.$router.currentRoute.name !== 'home') {
-          this.$router.push({ name: "home" })
+        this.fetchMyRooms();
+        if (this.$router.currentRoute.name !== "home") {
+          this.$router.push({ name: "home" });
         }
       } else {
-        this.doLogout(user)
+        this.doLogout(user);
         this.$router.push({ name: "home" });
       }
     });
@@ -59,11 +59,11 @@ export default {
       "doLogin",
       "doLogout",
       "fetchMessages",
-      "fetchMyRooms",
+      "fetchMyRooms"
     ])
   },
   computed: {
-    ...mapGetters(["uid", "photoURL", "currentRoomId"])
+    ...mapGetters(["uid", "photoURL", "currentRoomId"]),
   }
 };
 </script>
