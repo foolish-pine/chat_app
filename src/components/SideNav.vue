@@ -19,7 +19,7 @@
               <v-icon>mdi-plus</v-icon>
             </v-list-item-icon>
             <v-list-item-content>
-              <v-list-item-title>New Talk Room</v-list-item-title>
+              <v-list-item-title>New</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
         </template>
@@ -36,13 +36,21 @@
                 <v-col cols="12">
                   <v-text-field label="Room ID" v-model="roomId" required></v-text-field>
                 </v-col>
+                <v-col cols="12">
+                  <v-text-field
+                    label="Room Password"
+                    v-model="roomPassword"
+                    type="password"
+                    required
+                  ></v-text-field>
+                </v-col>
               </v-row>
             </v-container>
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
             <v-btn color="blue darken-1" text @click="newDialog = false">Close</v-btn>
-            <v-btn color="blue darken-1" text @click="newRoom(roomName, roomId)">Make</v-btn>
+            <v-btn color="blue darken-1" text @click="newRoom(roomName, roomId, roomPassword)">Make</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
@@ -67,19 +75,31 @@
                 <v-col cols="12">
                   <v-text-field label="Room ID" v-model="searchedId" required></v-text-field>
                 </v-col>
+                <v-col cols="12">
+                  <v-text-field
+                    label="Room Password"
+                    v-model="searchedRoomPassword"
+                    type="password"
+                    required
+                  ></v-text-field>
+                </v-col>
               </v-row>
             </v-container>
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
             <v-btn color="blue darken-1" text @click="joinDialog = false">Close</v-btn>
-            <v-btn color="blue darken-1" text @click="joinRoom(searchedId)">Join</v-btn>
+            <v-btn
+              color="blue darken-1"
+              text
+              @click="joinRoom({searchedId, searchedRoomPassword})"
+            >Join</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
 
       <v-list-item
-        v-for="{name, roomId} in $store.state.myRooms"
+        v-for="{roomName, roomId} in $store.state.myRooms"
         :key="roomId"
         :to="{ name: 'room', params: {roomId: roomId} }"
         @click="changeRoom(roomId)"
@@ -88,7 +108,7 @@
           <v-icon>mdi-account-group</v-icon>
         </v-list-item-icon>
         <v-list-item-content>
-          <v-list-item-title>{{ name }}</v-list-item-title>
+          <v-list-item-title>{{ roomName }}</v-list-item-title>
         </v-list-item-content>
       </v-list-item>
     </v-list>
@@ -107,7 +127,9 @@ export default {
       joinDialog: false,
       roomName: "",
       roomId: "",
+      roomPassword: "",
       searchedId: "",
+      searchedRoomPassword: ""
     };
   },
   methods: {
@@ -119,18 +141,25 @@ export default {
     changeRoom(roomId) {
       this.changeRoomAndFetchMessages(roomId);
     },
-    joinRoom(searchedId) {
+    joinRoom({ searchedId, searchedRoomPassword }) {
       this.joinDialog = false;
-      this.joinAnoterRoom(searchedId);
+      this.joinAnoterRoom({ searchedId, searchedRoomPassword });
     },
-    newRoom(roomName, roomId) {
+    newRoom(roomName, roomId, roomPassword) {
       this.newDialog = false;
-      firebase.firestore().collection(`rooms`).doc(roomId)
-      .set({
-        name: roomName,
-        roomId: roomId,
-        members: [this.uid]
-      })
+      firebase
+        .firestore()
+        .collection(`rooms`)
+        .doc(roomId)
+        .set(
+          {
+            roomName: roomName,
+            roomId: roomId,
+            roomPassword: roomPassword,
+            members: [this.uid],
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          }
+        );
     }
   },
   computed: {

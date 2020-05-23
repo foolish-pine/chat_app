@@ -42,8 +42,8 @@ export default new Vuex.Store({
     doSend (state) {
       state.input = ""; // フォームを空にする
     },
-    fetchMyRooms (state, {name, roomId}) {
-      state.myRooms.push({name, roomId})
+    fetchMyRooms (state, {roomName, roomId}) {
+      state.myRooms.push({roomName, roomId})
     },
     changeCurrentRoomId (state, roomId) {
       state.currentRoomId = roomId
@@ -112,16 +112,16 @@ export default new Vuex.Store({
           dispatch('clearMyRooms')
           snapshot.forEach(doc => {
             if (doc.get('members').includes(getters.uid)) {
-              commit('fetchMyRooms', { name: doc.get('name'), roomId: doc.get('roomId')})
+              commit('fetchMyRooms', { roomName: doc.get('roomName'), roomId: doc.get('roomId')})
             }
           })
         })
     },
-    joinAnoterRoom ({getters}, searchedId) {
+    joinAnoterRoom ({getters}, {searchedId, searchedRoomPassword}) {
         firebase.firestore().collection(`rooms`)
         .onSnapshot(snapshot => {
           snapshot.forEach(doc => {
-            if (doc.get('roomId') === searchedId) {
+            if (doc.get('roomId') === searchedId && doc.get('roomPassword') === searchedRoomPassword) {
               firebase.firestore().collection(`rooms`).doc(doc.get('roomId')).update({
                 members: firebase.firestore.FieldValue.arrayUnion(getters.uid)
               })
