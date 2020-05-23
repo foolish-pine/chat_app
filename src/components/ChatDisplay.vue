@@ -2,7 +2,7 @@
     <v-content>
       <v-container>
         <div v-for="{ id, name, image, message, posttime, uid } in $store.state.messages" :key="id">
-          <div v-if="(uid === uid)" class="d-flex justify-end mb-4 ml-auto">
+          <div v-if="(uid === $store.state.user.uid)" class="d-flex justify-end mb-4 ml-auto">
             <div class="chat-message">
               <div class="body-2 text-end">{{ name }}</div>
               <div class="d-flex align-end justify-end">
@@ -36,7 +36,6 @@
 </template>
 
 <script>
-import { mapGetters } from "vuex";
 // 改行を <br> タグに変換するモジュール
 import Nl2br from "vue-nl2br";
 export default {
@@ -53,9 +52,6 @@ export default {
       window.scrollTo(0, document.body.clientHeight);
     });
   },
-  computed: {
-    ...mapGetters(["uid"])
-  }
 };
 </script>
 

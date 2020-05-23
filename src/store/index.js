@@ -47,7 +47,7 @@ export default new Vuex.Store({
     },
     changeCurrentRoomId (state, roomId) {
       state.currentRoomId = roomId
-    }
+    },
   },
   actions: {
     setDrawer({ commit }, val) {
@@ -117,13 +117,25 @@ export default new Vuex.Store({
           })
         })
     },
+    joinAnoterRoom ({getters}, searchedId) {
+        firebase.firestore().collection(`rooms`)
+        .onSnapshot(snapshot => {
+          snapshot.forEach(doc => {
+            if (doc.get('roomId') === searchedId) {
+              firebase.firestore().collection(`rooms`).doc(doc.get('roomId')).update({
+                members: firebase.firestore.FieldValue.arrayUnion(getters.uid)
+              })
+            }
+          })
+        })
+    },
     changeRoomAndFetchMessages ({dispatch, commit}, roomId) {
       firebase.firestore().collection(`rooms/${roomId}/messages`).orderBy('timestamp', 'asc').onSnapshot(snapshot => {
         dispatch('clearMessages')
         commit('changeCurrentRoomId', roomId)
         snapshot.forEach(doc => commit('addMessage', { id: doc.id, fetchedMessage:  doc.data() }))
       })
-  },
+    },
   },
   getters: {
     uid: state => state.user ? state.user.uid : "",

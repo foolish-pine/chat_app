@@ -12,7 +12,7 @@
 
       <v-divider></v-divider>
 
-      <v-dialog v-model="dialog" max-width="600px">
+      <v-dialog v-model="newDialog" max-width="600px">
         <template v-slot:activator="{ on }">
           <v-list-item v-on="on">
             <v-list-item-icon>
@@ -31,25 +31,22 @@
             <v-container>
               <v-row>
                 <v-col cols="12">
-                  <v-text-field label="Room Name" required></v-text-field>
+                  <v-text-field label="Room Name" v-model="roomName" required></v-text-field>
                 </v-col>
                 <v-col cols="12">
-                  <v-text-field label="Room ID" required></v-text-field>
-                </v-col>
-                <v-col cols="12">
-                  <v-text-field label="Password" type="password" required></v-text-field>
+                  <v-text-field label="Room ID" v-model="roomId" required></v-text-field>
                 </v-col>
               </v-row>
             </v-container>
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn color="blue darken-1" text @click="dialog = false">Close</v-btn>
-            <v-btn color="blue darken-1" text @click="dialog = false">Save</v-btn>
+            <v-btn color="blue darken-1" text @click="newDialog = false">Close</v-btn>
+            <v-btn color="blue darken-1" text @click="newRoom(roomName, roomId)">Make</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
-      <v-dialog v-model="dialog" max-width="600px">
+      <v-dialog v-model="joinDialog" max-width="600px">
         <template v-slot:activator="{ on }">
           <v-list-item v-on="on">
             <v-list-item-icon>
@@ -68,15 +65,15 @@
             <v-container>
               <v-row>
                 <v-col cols="12">
-                  <v-text-field label="Room ID" required></v-text-field>
+                  <v-text-field label="Room ID" v-model="searchedId" required></v-text-field>
                 </v-col>
               </v-row>
             </v-container>
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn color="blue darken-1" text @click="dialog = false">Close</v-btn>
-            <v-btn color="blue darken-1" text @click="changeRoom(id)">Join</v-btn>
+            <v-btn color="blue darken-1" text @click="joinDialog = false">Close</v-btn>
+            <v-btn color="blue darken-1" text @click="joinRoom(searchedId)">Join</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
@@ -102,20 +99,42 @@
 import { mapActions } from "vuex";
 import { mapGetters } from "vuex";
 import store from "../store";
+import firebase from "firebase";
 export default {
   data() {
     return {
-      dialog: false
+      newDialog: false,
+      joinDialog: false,
+      roomName: "",
+      roomId: "",
+      searchedId: "",
     };
   },
   methods: {
-    ...mapActions(["joinRoom", "changeRoomAndFetchMessages"]),
+    ...mapActions([
+      "changeRoomAndFetchMessages",
+      "joinAnoterRoom",
+      "makeNewRoom"
+    ]),
     changeRoom(roomId) {
-      this.changeRoomAndFetchMessages(roomId)
+      this.changeRoomAndFetchMessages(roomId);
+    },
+    joinRoom(searchedId) {
+      this.joinDialog = false;
+      this.joinAnoterRoom(searchedId);
+    },
+    newRoom(roomName, roomId) {
+      this.newDialog = false;
+      firebase.firestore().collection(`rooms`).doc(roomId)
+      .set({
+        name: roomName,
+        roomId: roomId,
+        members: [this.uid]
+      })
     }
   },
   computed: {
-    ...mapGetters(["photoURL", "displayName"]),
+    ...mapGetters(["photoURL", "displayName", "uid"]),
     drawer: {
       get() {
         return store.state.drawer;
