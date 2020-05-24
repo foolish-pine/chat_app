@@ -1,7 +1,7 @@
-# 「Vue.jsとfirebaseでつくるチャットアプリ」
+# Vue.jsとfirebaseでつくるチャットアプリ
 
 ## デモ
-<img src="https://user-images.githubusercontent.com/59694183/82754744-004b0700-9e0a-11ea-911e-412fa1df4b8b.gif">
+<img src="https://user-images.githubusercontent.com/59694183/82754744-004b0700-9e0a-11ea-911e-412fa1df4b8b.gif" width="500">
 <br>
 <br>
 
