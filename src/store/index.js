@@ -7,8 +7,8 @@ Vue.use(Vuex);
 export default new Vuex.Store({
   state: {
     drawer: false,
-    user: {}, // ユーザー情報
-    input: "", // 入力したメッセージ
+    user: {},
+    input: "",
     messages: [],
     myRooms: [],
     currentRoomName: "",
@@ -41,7 +41,7 @@ export default new Vuex.Store({
       state.messages.push(fetchedMessage);
     },
     doSend(state) {
-      state.input = ""; // フォームを空にする
+      state.input = "";
     },
     fetchMyRooms(state, { roomName, roomId }) {
       state.myRooms.push({ roomName, roomId });
@@ -60,12 +60,10 @@ export default new Vuex.Store({
     toggleSideMenu({ commit }) {
       commit("toggleSideMenu");
     },
-    // ログイン処理
     doLogin() {
       const provider = new firebase.auth.GoogleAuthProvider();
       firebase.auth().signInWithPopup(provider);
     },
-    // ログアウト処理
     doLogout({ commit }) {
       firebase.auth().signOut();
       commit("doLogout");
@@ -89,7 +87,6 @@ export default new Vuex.Store({
         const minutes = ("0" + now.getMinutes()).slice(-2);
         this.timestamp = now.getTime();
         this.posttime = `${hours}:${minutes}`;
-        // firebase にメッセージを追加
         firebase
           .firestore()
           .collection(`rooms/${getters.currentRoomId}/messages`)
