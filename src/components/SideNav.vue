@@ -92,12 +92,11 @@
             <v-btn
               color="blue darken-1"
               text
-              @click="joinRoom({searchedId, searchedRoomPassword})"
+              @click="joinRoom(searchedId, searchedRoomPassword)"
             >Join</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
-
       <v-list-item
         v-for="{roomName, roomId} in $store.state.myRooms"
         :key="roomId"
@@ -133,33 +132,72 @@ export default {
     };
   },
   methods: {
-    ...mapActions([
-      "changeRoomAndFetchMessages",
-      "joinAnoterRoom",
-      "makeNewRoom"
-    ]),
+    ...mapActions(["changeRoomAndFetchMessages", "fetchMyRooms", "joinRoom"]),
     changeRoom(roomId) {
       this.changeRoomAndFetchMessages(roomId);
     },
-    joinRoom({ searchedId, searchedRoomPassword }) {
-      this.joinDialog = false;
-      this.joinAnoterRoom({ searchedId, searchedRoomPassword });
-    },
-    newRoom(roomName, roomId, roomPassword) {
-      this.newDialog = false;
+    joinRoom(searchedId, searchedRoomPassword) {
       firebase
         .firestore()
-        .collection(`rooms`)
+        .collection("rooms")
+        .onSnapshot(snapshot => {
+          snapshot.forEach(doc => {
+            if (
+              doc.get("roomId") === searchedId &&
+              doc.get("roomPassword") === searchedRoomPassword
+            ) {
+              firebase
+                .firestore()
+                .collection(`users/${this.uid}/myRooms`)
+                .doc(searchedId)
+                .set({
+                  roomName: doc.get("roomName"),
+                  roomId: doc.get("roomId")
+                })
+                .then(() => this.fetchMyRooms);
+              this.$router.push({
+                name: "room",
+                params: { roomId: searchedId }
+              });
+            }
+          });
+        });
+      this.changeRoomAndFetchMessages(searchedId);
+      this.joinDialog = false;
+      this.searchedId = "";
+      this.searchedRoomPassword = "";
+    },
+    newRoom(roomName, roomId, roomPassword) {
+      firebase
+        .firestore()
+        .collection("rooms")
         .doc(roomId)
-        .set(
-          {
-            roomName: roomName,
-            roomId: roomId,
-            roomPassword: roomPassword,
-            members: [this.uid],
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-          }
-        );
+        .set({
+          roomName: roomName,
+          roomId: roomId,
+          roomPassword: roomPassword,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        })
+        .then(() => {
+          this.changeRoomAndFetchMessages(roomId);
+          this.$router.push({
+            name: "room",
+            params: { roomId: roomId }
+          });
+        });
+      firebase
+        .firestore()
+        .collection(`users/${this.uid}/myRooms`)
+        .doc(roomId)
+        .set({
+          roomName: roomName,
+          roomId: roomId
+        })
+        .then(() => this.fetchMyRooms);
+      this.newDialog = false;
+      this.roomName = "";
+      this.roomId = "";
+      this.roomPassword = "";
     }
   },
   computed: {

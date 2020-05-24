@@ -11,7 +11,8 @@ export default new Vuex.Store({
     input: "", // 入力したメッセージ
     messages: [],
     myRooms: [],
-    currentRoomId: ""
+    currentRoomName: "",
+    currentRoomId: "",
   },
   mutations: {
     setDrawer(state, val) {
@@ -20,33 +21,36 @@ export default new Vuex.Store({
     toggleSideMenu(state) {
       state.drawer = !state.drawer;
     },
-    setLoginUser (state, user) {
+    setLoginUser(state, user) {
       state.user = user;
     },
-    clearMessages (state) {
+    clearMessages(state) {
       state.messages = [];
     },
-    clearMyRooms (state) {
+    clearMyRooms(state) {
       state.myRooms = [];
     },
-    doLogout (state) {
+    doLogout(state) {
       state.user = {};
     },
-    doUpdateInput (state, {input}) {
+    doUpdateInput(state, { input }) {
       state.input = input;
     },
-    addMessage (state, { id, fetchedMessage }) {
-      fetchedMessage.id = id
-        state.messages.push(fetchedMessage)
+    addMessage(state, { id, fetchedMessage }) {
+      fetchedMessage.id = id;
+      state.messages.push(fetchedMessage);
     },
-    doSend (state) {
+    doSend(state) {
       state.input = ""; // フォームを空にする
     },
-    fetchMyRooms (state, {roomName, roomId}) {
-      state.myRooms.push({roomName, roomId})
+    fetchMyRooms(state, { roomName, roomId }) {
+      state.myRooms.push({ roomName, roomId });
     },
-    changeCurrentRoomId (state, roomId) {
-      state.currentRoomId = roomId
+    changeCurrentRoomName(state, roomName) {
+      state.currentRoomName = roomName;
+    },
+    changeCurrentRoomId(state, roomId) {
+      state.currentRoomId = roomId;
     },
   },
   actions: {
@@ -62,23 +66,23 @@ export default new Vuex.Store({
       firebase.auth().signInWithPopup(provider);
     },
     // ログアウト処理
-    doLogout({commit}) {
+    doLogout({ commit }) {
       firebase.auth().signOut();
       commit("doLogout");
     },
-    setLoginUser ({commit}, user) {
-      commit('setLoginUser', user);
+    setLoginUser({ commit }, user) {
+      commit("setLoginUser", user);
     },
-    clearMessages ({commit}) {
-      commit('clearMessages');
+    clearMessages({ commit }) {
+      commit("clearMessages");
     },
-    clearMyRooms ({commit}) {
-      commit('clearMyRooms');
+    clearMyRooms({ commit }) {
+      commit("clearMyRooms");
     },
-    doUpdateInput ({commit}, {input}) {
-      commit('doUpdateInput', {input});
+    doUpdateInput({ commit }, { input }) {
+      commit("doUpdateInput", { input });
     },
-    doSend ({getters, commit}) {
+    doSend({ getters, commit }) {
       if (getters.uid && getters.input.length) {
         const now = new Date();
         const hours = ("0" + now.getHours()).slice(-2);
@@ -86,62 +90,77 @@ export default new Vuex.Store({
         this.timestamp = now.getTime();
         this.posttime = `${hours}:${minutes}`;
         // firebase にメッセージを追加
-        firebase.firestore().collection(`rooms/${getters.currentRoomId}/messages`)
-          .add(
-            {
-              message: getters.input,
-              name: getters.displayName,
-              image: getters.photoURL,
-              timestamp: this.timestamp,
-              posttime: this.posttime,
-              uid: getters.uid
-            }
-          );
-      commit('doSend');
+        firebase
+          .firestore()
+          .collection(`rooms/${getters.currentRoomId}/messages`)
+          .add({
+            message: getters.input,
+            name: getters.displayName,
+            image: getters.photoURL,
+            timestamp: this.timestamp,
+            posttime: this.posttime,
+            uid: getters.uid,
+          });
+        commit("doSend");
       }
     },
-    fetchMessages ({getters, dispatch, commit}) {
-        firebase.firestore().collection(`rooms/${getters.currentRoomId}/messages`).orderBy('timestamp', 'asc').onSnapshot(snapshot => {
-          dispatch('clearMessages')
-          snapshot.forEach(doc => commit('addMessage',  { id: doc.id, fetchedMessage:  doc.data() }))
-        })
+    fetchMessages({ getters, dispatch, commit }) {
+      firebase
+        .firestore()
+        .collection(`rooms/${getters.currentRoomId}/messages`)
+        .orderBy("timestamp", "asc")
+        .onSnapshot((snapshot) => {
+          dispatch("clearMessages");
+          snapshot.forEach((doc) =>
+            commit("addMessage", { id: doc.id, fetchedMessage: doc.data() })
+          );
+        });
     },
-    fetchMyRooms ({getters, dispatch, commit}) {
-        firebase.firestore().collection(`rooms`)
-        .onSnapshot(snapshot => {
-          dispatch('clearMyRooms')
-          snapshot.forEach(doc => {
-            if (doc.get('members').includes(getters.uid)) {
-              commit('fetchMyRooms', { roomName: doc.get('roomName'), roomId: doc.get('roomId')})
-            }
-          })
-        })
+    fetchMyRooms({ getters, dispatch, commit }) {
+      firebase
+        .firestore()
+        .collection(`users/${getters.uid}/myRooms`)
+        .onSnapshot((snapshot) => {
+          dispatch("clearMyRooms");
+          snapshot.forEach((doc) => {
+            commit("fetchMyRooms", {
+              roomName: doc.get("roomName"),
+              roomId: doc.get("roomId"),
+            });
+          });
+        });
     },
-    joinAnoterRoom ({getters}, {searchedId, searchedRoomPassword}) {
-        firebase.firestore().collection(`rooms`)
-        .onSnapshot(snapshot => {
-          snapshot.forEach(doc => {
-            if (doc.get('roomId') === searchedId && doc.get('roomPassword') === searchedRoomPassword) {
-              firebase.firestore().collection(`rooms`).doc(doc.get('roomId')).update({
-                members: firebase.firestore.FieldValue.arrayUnion(getters.uid)
-              })
-            }
-          })
-        })
+    changeRoomAndFetchMessages({ dispatch, commit }, roomId) {
+      firebase
+        .firestore()
+        .collection(`rooms/${roomId}/messages`)
+        .orderBy("timestamp", "asc")
+        .onSnapshot((snapshot) => {
+          dispatch("clearMessages");
+          dispatch("changeCurrentRoomName", roomId);
+          commit("changeCurrentRoomId", roomId);
+          snapshot.forEach((doc) =>
+            commit("addMessage", { id: doc.id, fetchedMessage: doc.data() })
+          );
+        });
     },
-    changeRoomAndFetchMessages ({dispatch, commit}, roomId) {
-      firebase.firestore().collection(`rooms/${roomId}/messages`).orderBy('timestamp', 'asc').onSnapshot(snapshot => {
-        dispatch('clearMessages')
-        commit('changeCurrentRoomId', roomId)
-        snapshot.forEach(doc => commit('addMessage', { id: doc.id, fetchedMessage:  doc.data() }))
-      })
+    changeCurrentRoomName({ commit }, roomId) {
+      firebase
+        .firestore()
+        .collection("rooms")
+        .doc(roomId)
+        .get()
+        .then((doc) => {
+          commit("changeCurrentRoomName", doc.data().roomName);
+        });
     },
   },
   getters: {
-    uid: state => state.user ? state.user.uid : "",
-    displayName: state => state.user ? state.user.displayName : "",
-    photoURL: state => state.user ? state.user.photoURL : "",
-    input: state => state.input,
-    currentRoomId: state => state.currentRoomId,
-  }
+    uid: (state) => (state.user ? state.user.uid : ""),
+    displayName: (state) => (state.user ? state.user.displayName : ""),
+    photoURL: (state) => (state.user ? state.user.photoURL : ""),
+    input: (state) => state.input,
+    currentRoomName: (state) => state.currentRoomName,
+    currentRoomId: (state) => state.currentRoomId,
+  },
 });

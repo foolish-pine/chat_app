@@ -1,7 +1,6 @@
 <template>
   <v-footer app color="#f5f5f5" height="120">
     <v-spacer></v-spacer>
-    <!-- 入力フォーム -->
     <v-form action @submit.prevent="doSend" class="d-flex align-center form-container">
       <v-textarea
         :value="input"
