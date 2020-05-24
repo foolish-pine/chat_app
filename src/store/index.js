@@ -111,25 +111,11 @@ export default new Vuex.Store({
         })
     },
     fetchMyRooms ({getters, dispatch, commit}) {
-        firebase.firestore().collection(`rooms`)
+        firebase.firestore().collection(`users/${getters.uid}/myRooms`)
         .onSnapshot(snapshot => {
           dispatch('clearMyRooms')
           snapshot.forEach(doc => {
-            if (doc.get('members').includes(getters.uid)) {
               commit('fetchMyRooms', { roomName: doc.get('roomName'), roomId: doc.get('roomId')})
-            }
-          })
-        })
-    },
-    joinAnoterRoom ({getters}, {searchedId, searchedRoomPassword}) {
-        firebase.firestore().collection(`rooms`)
-        .onSnapshot(snapshot => {
-          snapshot.forEach(doc => {
-            if (doc.get('roomId') === searchedId && doc.get('roomPassword') === searchedRoomPassword) {
-              firebase.firestore().collection(`rooms`).doc(doc.get('roomId')).update({
-                members: firebase.firestore.FieldValue.arrayUnion(getters.uid)
-              })
-            }
           })
         })
     },

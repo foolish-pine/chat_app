@@ -3,7 +3,7 @@
     <header>
       <v-app-bar app dark color="#41b883" height="80">
         <v-app-bar-nav-icon v-show="$store.state.user.uid" @click.stop="toggleSideMenu"></v-app-bar-nav-icon>
-        <v-toolbar-title class="title">{{ $store.state.currentRoomName }}</v-toolbar-title>
+        <v-toolbar-title class="title" v-if="$store.state.user.uid">{{ $store.state.currentRoomName }}</v-toolbar-title>
         <v-spacer></v-spacer>
 
         <!-- ログイン時にはフォームとログアウトボタンを表示 -->
