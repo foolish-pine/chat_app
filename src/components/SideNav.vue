@@ -97,7 +97,6 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
-
       <v-list-item
         v-for="{roomName, roomId} in $store.state.myRooms"
         :key="roomId"
@@ -140,7 +139,7 @@ export default {
     joinRoom(searchedId, searchedRoomPassword) {
       firebase
         .firestore()
-        .collection(`rooms`)
+        .collection("rooms")
         .onSnapshot(snapshot => {
           snapshot.forEach(doc => {
             if (
@@ -165,15 +164,13 @@ export default {
         });
       this.changeRoomAndFetchMessages(searchedId);
       this.joinDialog = false;
-
       this.searchedId = "";
       this.searchedRoomPassword = "";
     },
-
     newRoom(roomName, roomId, roomPassword) {
       firebase
         .firestore()
-        .collection(`rooms`)
+        .collection("rooms")
         .doc(roomId)
         .set({
           roomName: roomName,
