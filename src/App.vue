@@ -3,17 +3,15 @@
     <header>
       <v-app-bar app dark color="#41b883" height="80">
         <v-app-bar-nav-icon v-show="$store.state.user.uid" @click.stop="toggleSideMenu"></v-app-bar-nav-icon>
-        <v-toolbar-title class="title" v-if="$store.state.user.uid">{{ $store.state.currentRoomName }}</v-toolbar-title>
+        <v-toolbar-title class="title" v-if="$store.state.user.uid && this.$router.currentRoute.name !== 'home'">{{ $store.state.currentRoomName }}</v-toolbar-title>
         <v-spacer></v-spacer>
 
-        <!-- ログイン時にはフォームとログアウトボタンを表示 -->
         <div v-if="uid" key="login" class="d-flex align-center">
           <v-avatar size="40" class="mr-3">
             <img :src="photoURL" />
           </v-avatar>
           <v-btn @click="doLogout" outlined>ログアウト</v-btn>
         </div>
-        <!-- 未ログイン時にはログインボタンを表示 -->
         <div v-else key="logout">
           <v-btn @click="doLogin" outlined>ログイン</v-btn>
         </div>
@@ -29,7 +27,6 @@ import { mapActions } from "vuex";
 import { mapGetters } from "vuex";
 import firebase from "firebase";
 import SideNav from "./components/SideNav";
-// 改行を <br> タグに変換するモジュール
 export default {
   components: {
     SideNav
@@ -58,7 +55,6 @@ export default {
       "setLoginUser",
       "doLogin",
       "doLogout",
-      "fetchMessages",
       "fetchMyRooms"
     ])
   },
