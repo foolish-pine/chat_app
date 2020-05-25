@@ -43,7 +43,6 @@
       "parser": "babel-eslint"
     },
     "rules": {
-      "no-extra-semi": "warn",
       "quotes": ["warn", "double"]   
     }
   },

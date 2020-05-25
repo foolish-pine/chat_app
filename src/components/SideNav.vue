@@ -154,15 +154,17 @@ export default {
                   roomName: doc.get("roomName"),
                   roomId: doc.get("roomId")
                 })
-                .then(() => this.fetchMyRooms);
-              this.$router.push({
-                name: "room",
-                params: { roomId: searchedId }
-              });
-            }
+                .then(() => {
+                  this.fetchMyRooms
+                  this.$router.push({
+                    name: "room",
+                    params: { roomId: searchedId }
+                  });
+                  this.changeRoomAndFetchMessages(searchedId)
+                });
+              }
           });
         });
-      this.changeRoomAndFetchMessages(searchedId);
       this.joinDialog = false;
       this.searchedId = "";
       this.searchedRoomPassword = "";
@@ -176,7 +178,6 @@ export default {
           roomName: roomName,
           roomId: roomId,
           roomPassword: roomPassword,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
         })
         .then(() => {
           this.changeRoomAndFetchMessages(roomId);
@@ -184,7 +185,6 @@ export default {
             name: "room",
             params: { roomId: roomId }
           });
-        });
       firebase
         .firestore()
         .collection(`users/${this.uid}/myRooms`)
@@ -194,6 +194,7 @@ export default {
           roomId: roomId
         })
         .then(() => this.fetchMyRooms);
+        });
       this.newDialog = false;
       this.roomName = "";
       this.roomId = "";
