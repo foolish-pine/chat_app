@@ -84,10 +84,10 @@ export default new Vuex.Store({
     },
     doSend({ getters, commit }) {
       if (getters.uid && getters.input.length) {
-        const now = new Date();
+        const now = new Date(firebase.firestore.Timestamp.now().seconds * 1000);
         const hours = ("0" + now.getHours()).slice(-2);
         const minutes = ("0" + now.getMinutes()).slice(-2);
-        this.timestamp = now.getTime();
+        this.timestamp = now;
         this.posttime = `${hours}:${minutes}`;
         // firebase にメッセージを追加
         firebase
