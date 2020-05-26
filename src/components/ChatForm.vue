@@ -32,8 +32,8 @@ export default {
   },
   methods: {
     ...mapActions(["doUpdateInput", "doSend"]),
-    onInput(value) {
-      this.doUpdateInput({ input: value });
+    onInput(input) {
+      this.doUpdateInput(input);
     },
   },
   computed: {
