@@ -2,6 +2,7 @@
   <v-app>
     <header>
       <v-app-bar app dark color="#41b883" height="80">
+        <!-- ログイン時にサイドバーアイコンと現在のルーム名を表示 -->
         <v-app-bar-nav-icon v-show="$store.state.user.uid" @click.stop="toggleSideMenu"></v-app-bar-nav-icon>
         <v-toolbar-title class="title" v-if="$store.state.user.uid">{{ $store.state.currentRoomName }}</v-toolbar-title>
         <v-spacer></v-spacer>
@@ -41,6 +42,7 @@ export default {
   created() {
     firebase.auth().onAuthStateChanged(user => {
       if (user) {
+        // ログイン後ユーザー情報をセットし、参加済みのルームを取得する
         this.setLoginUser(user);
         this.fetchMyRooms();
         if (this.$router.currentRoute.name !== "home") {

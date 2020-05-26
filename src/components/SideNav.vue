@@ -3,15 +3,18 @@
     <v-list>
       <v-list-item>
         <v-list-item-avatar>
+          <!-- ユーザーのアバターを表示 -->
           <img :src="photoURL" />
         </v-list-item-avatar>
         <v-list-item-content>
+          <!-- ユーザー名を表示 -->
           <v-list-item-title>{{ displayName }}</v-list-item-title>
         </v-list-item-content>
       </v-list-item>
 
       <v-divider></v-divider>
-
+      
+      <!-- ルームの新規作成ボタンとダイアログ -->
       <v-dialog v-model="newDialog" max-width="600px">
         <template v-slot:activator="{ on }">
           <v-list-item v-on="on">
@@ -31,15 +34,15 @@
             <v-container>
               <v-row>
                 <v-col cols="12">
-                  <v-text-field label="Room Name" v-model="roomName" required></v-text-field>
+                  <v-text-field label="Room Name" v-model="newRoomName" required></v-text-field>
                 </v-col>
                 <v-col cols="12">
-                  <v-text-field label="Room ID" v-model="roomId" required></v-text-field>
+                  <v-text-field label="Room ID" v-model="newRoomId" required></v-text-field>
                 </v-col>
                 <v-col cols="12">
                   <v-text-field
                     label="Room Password"
-                    v-model="roomPassword"
+                    v-model="newRoomPassword"
                     type="password"
                     required
                   ></v-text-field>
@@ -50,10 +53,11 @@
           <v-card-actions>
             <v-spacer></v-spacer>
             <v-btn color="blue darken-1" text @click="newDialog = false">Close</v-btn>
-            <v-btn color="blue darken-1" text @click="newRoom(roomName, roomId, roomPassword)">Make</v-btn>
+            <v-btn color="blue darken-1" text @click="newRoom(newRoomName, newRoomId, newRoomPassword)">Make</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
+      <!-- ルームの参加ボタンとダイアログ -->
       <v-dialog v-model="joinDialog" max-width="600px">
         <template v-slot:activator="{ on }">
           <v-list-item v-on="on">
@@ -97,6 +101,7 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
+      <!-- ユーザーが参加済みのルームを表示する -->
       <v-list-item
         v-for="{roomName, roomId} in $store.state.myRooms"
         :key="roomId"
@@ -124,11 +129,11 @@ export default {
     return {
       newDialog: false,
       joinDialog: false,
-      roomName: "",
-      roomId: "",
-      roomPassword: "",
-      searchedId: "",
-      searchedRoomPassword: ""
+      newRoomName: "", // 新規作成するルームの名前
+      newRoomId: "", // 新規作成するルームのID
+      newRoomPassword: "", // 新規作成するルームのパスワード
+      searchedId: "", // ルーム参加フォームに入力したID
+      searchedRoomPassword: "" // ルーム参加フォームに入力したパスワード
     };
   },
   methods: {
@@ -169,29 +174,29 @@ export default {
       this.searchedId = "";
       this.searchedRoomPassword = "";
     },
-    newRoom(roomName, roomId, roomPassword) {
+    newRoom(newRoomName, newRoomId, newRoomPassword) {
       firebase
         .firestore()
         .collection("rooms")
-        .doc(roomId)
+        .doc(newRoomId)
         .set({
-          roomName: roomName,
-          roomId: roomId,
-          roomPassword: roomPassword,
+          roomName: newRoomName,
+          roomId: newRoomId,
+          roomPassword: newRoomPassword,
         })
         .then(() => {
-          this.changeRoomAndFetchMessages(roomId);
+          this.changeRoomAndFetchMessages(newRoomId);
           this.$router.push({
             name: "room",
-            params: { roomId: roomId }
+            params: { roomId: newRoomId }
           });
       firebase
         .firestore()
         .collection(`users/${this.uid}/myRooms`)
-        .doc(roomId)
+        .doc(newRoomId)
         .set({
-          roomName: roomName,
-          roomId: roomId
+          roomName: newRoomName,
+          roomId: newRoomId
         })
         .then(() => this.fetchMyRooms);
         });

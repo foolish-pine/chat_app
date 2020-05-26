@@ -1,7 +1,9 @@
 <template>
     <v-content>
       <v-container>
+        <!-- 現在のルームのメッセージを表示する -->
         <div v-for="{ id, name, image, message, posttime, uid } in $store.state.messages" :key="id">
+          <!-- メッセージの発信者が自分ならメッセージを右側に表示する -->
           <div v-if="(uid === $store.state.user.uid)" class="d-flex justify-end mb-4 ml-auto">
             <div class="chat-message">
               <div class="body-2 text-end">{{ name }}</div>
@@ -16,6 +18,7 @@
               <img :src="image" width="40" height="40" />
             </v-avatar>
           </div>
+          <!-- メッセージの発信者が自分以外メッセージを左側に表示する -->
           <div v-else class="d-flex mb-4">
             <v-avatar size="40" class="mt-1 mr-2">
               <img :src="image" width="40" height="40" />
