@@ -47,7 +47,7 @@ export default {
         }
       } else {
         this.doLogout(user);
-        this.$router.push({ name: "home" });
+        this.$router.push("/", () => {});
       }
     });
   },
