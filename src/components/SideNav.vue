@@ -4,11 +4,13 @@
       <v-list-item>
         <v-list-item-avatar>
           <!-- ユーザーのアバターを表示 -->
-          <img :src="photoURL" />
+          <img v-if="photoURL" :src="photoURL" />
+          <img v-if="$store.state.user.isAnonymous" src="https://lh3.googleusercontent.com/ogw/ADGmqu95-Y5rL3aQFoJyII44uS-7RKoRDenRcWEqEfQM=s64-c-mo"/>
         </v-list-item-avatar>
         <v-list-item-content>
           <!-- ユーザー名を表示 -->
-          <v-list-item-title>{{ displayName }}</v-list-item-title>
+          <v-list-item-title v-if="$store.state.user.isAnonymous">ゲストさん</v-list-item-title>
+          <v-list-item-title v-if="displayName">{{ displayName }}</v-list-item-title>
         </v-list-item-content>
       </v-list-item>
 
@@ -120,8 +122,7 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
-import { mapGetters } from "vuex";
+import { mapActions, mapGetters } from "vuex";
 import store from "../store";
 import firebase from "firebase";
 export default {
@@ -169,7 +170,7 @@ export default {
                 });
               }
           });
-        });
+        }, () => {});
       this.joinDialog = false;
       this.searchedId = "";
       this.searchedRoomPassword = "";

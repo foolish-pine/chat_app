@@ -9,12 +9,10 @@
 
         <div v-if="uid" key="login" class="d-flex align-center">
           <v-avatar size="40" class="mr-3">
-            <img :src="photoURL" />
+            <img v-if="photoURL" :src="photoURL" />
+            <img v-if="$store.state.user.isAnonymous" src="https://lh3.googleusercontent.com/ogw/ADGmqu95-Y5rL3aQFoJyII44uS-7RKoRDenRcWEqEfQM=s64-c-mo"/>
           </v-avatar>
           <v-btn @click="doLogout" outlined>ログアウト</v-btn>
-        </div>
-        <div v-else key="logout">
-          <v-btn @click="doLogin" outlined>ログイン</v-btn>
         </div>
       </v-app-bar>
     </header>
@@ -24,8 +22,7 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
-import { mapGetters } from "vuex";
+import { mapActions, mapGetters } from "vuex";
 import firebase from "firebase";
 import SideNav from "./components/SideNav";
 export default {
@@ -56,6 +53,7 @@ export default {
       "toggleSideMenu",
       "setLoginUser",
       "doLogin",
+      "doAnonymousLogin",
       "doLogout",
       "fetchMyRooms"
     ])
