@@ -65,6 +65,14 @@ export default new Vuex.Store({
       const provider = new firebase.auth.GoogleAuthProvider();
       firebase.auth().signInWithPopup(provider);
     },
+    doAnonymousLogin() {
+      firebase
+        .auth()
+        .signInAnonymously()
+        .catch((error) => {
+          console.log(alert(error.message));
+        });
+    },
     doLogout({ commit }) {
       firebase.auth().signOut();
       commit("doLogout");
@@ -114,27 +122,37 @@ export default new Vuex.Store({
         .firestore()
         .collection(`rooms/${getters.currentRoomId}/messages`)
         .orderBy("timestamp", "asc")
-        .onSnapshot((snapshot) => {
-          dispatch("clearMessages");
-          snapshot.forEach((doc) =>
-            commit("addMessage", { id: doc.id, fetchedMessage: doc.data() })
-          );
-        });
+        .onSnapshot(
+          (snapshot) => {
+            dispatch("clearMessages");
+            snapshot.forEach((doc) =>
+              commit(
+                "addMessage",
+                { id: doc.id, fetchedMessage: doc.data() },
+                () => {}
+              )
+            );
+          },
+          () => {}
+        );
     },
     // ユーザーが参加済みのルームを取得
     fetchMyRooms({ getters, dispatch, commit }) {
       firebase
         .firestore()
         .collection(`users/${getters.uid}/myRooms`)
-        .onSnapshot((snapshot) => {
-          dispatch("clearMyRooms");
-          snapshot.forEach((doc) => {
-            commit("fetchMyRooms", {
-              roomName: doc.get("roomName"),
-              roomId: doc.get("roomId"),
+        .onSnapshot(
+          (snapshot) => {
+            dispatch("clearMyRooms");
+            snapshot.forEach((doc) => {
+              commit("fetchMyRooms", {
+                roomName: doc.get("roomName"),
+                roomId: doc.get("roomId"),
+              });
             });
-          });
-        });
+          },
+          () => {}
+        );
     },
     // ルームを変更し、変更先のメッセージを取得
     changeRoomAndFetchMessages({ dispatch, commit }, roomId) {
@@ -142,14 +160,17 @@ export default new Vuex.Store({
         .firestore()
         .collection(`rooms/${roomId}/messages`)
         .orderBy("timestamp", "asc")
-        .onSnapshot((snapshot) => {
-          dispatch("clearMessages");
-          dispatch("changeCurrentRoomName", roomId);
-          commit("changeCurrentRoomId", roomId);
-          snapshot.forEach((doc) =>
-            commit("addMessage", { id: doc.id, fetchedMessage: doc.data() })
-          );
-        });
+        .onSnapshot(
+          (snapshot) => {
+            dispatch("clearMessages");
+            dispatch("changeCurrentRoomName", roomId);
+            commit("changeCurrentRoomId", roomId);
+            snapshot.forEach((doc) =>
+              commit("addMessage", { id: doc.id, fetchedMessage: doc.data() })
+            );
+          },
+          () => {}
+        );
     },
     // ルームIDに応じてルーム名を変更
     changeCurrentRoomName({ commit }, roomId) {
