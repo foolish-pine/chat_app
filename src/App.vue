@@ -14,10 +14,6 @@
           </v-avatar>
           <v-btn @click="doLogout" outlined>ログアウト</v-btn>
         </div>
-        <div v-else key="logout">
-          <v-btn @click="doAnonymousLogin" outlined class="mr-5">匿名でログイン</v-btn>
-          <v-btn @click="doLogin" outlined>Googleアカウントでログイン</v-btn>
-        </div>
       </v-app-bar>
     </header>
     <SideNav></SideNav>
@@ -26,8 +22,7 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
-import { mapGetters } from "vuex";
+import { mapActions, mapGetters } from "vuex";
 import firebase from "firebase";
 import SideNav from "./components/SideNav";
 export default {
