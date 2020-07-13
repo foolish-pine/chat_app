@@ -18,7 +18,6 @@
               src="https://lh3.googleusercontent.com/ogw/ADGmqu95-Y5rL3aQFoJyII44uS-7RKoRDenRcWEqEfQM=s64-c-mo"
             />
           </v-avatar>
-          <v-btn @click="doLogout" outlined>ログアウト</v-btn>
         </div>
       </v-app-bar>
     </header>
@@ -45,11 +44,11 @@ export default {
         this.setLoginUser(user);
         this.fetchMyRooms();
         if (this.$router.currentRoute.name !== "home") {
-          this.$router.push({ name: "home" });
+          this.$router.push({ name: "home" }, () => {});
         }
       } else {
         this.doLogout(user);
-        this.$router.push("/", () => {});
+        this.$router.push({ name: "home" }, () => {});
       }
     });
   },
@@ -57,7 +56,6 @@ export default {
     ...mapActions([
       "toggleSideMenu",
       "setLoginUser",
-      "doLogout",
       "fetchMyRooms"
     ])
   },

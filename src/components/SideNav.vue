@@ -125,6 +125,12 @@
         </v-list-item-content>
       </v-list-item>
     </v-list>
+    <template v-slot:append>
+      <div v-if="uid" class="align-center pa-2">
+        <v-btn @click="exitRoom" block class="mb-2">現在のルームから退出</v-btn>
+        <v-btn @click="doLogout" block color="error">ログアウト</v-btn>
+      </div>
+    </template>
   </v-navigation-drawer>
 </template>
 
@@ -143,13 +149,9 @@ export default {
     };
   },
   methods: {
-    ...mapActions([
-      "makeNewRoom",
-      "joinRoom",
-      "changeRoomAndFetchMessages",
-    ]),
+    ...mapActions(["doLogout","exitRoom", "makeNewRoom", "joinRoom", "changeRoomAndFetchMessages"]),
     makeAndJoinNewRoom(newRoomName, newRoomId, newRoomPassword) {
-      this.makeNewRoom({newRoomName, newRoomId, newRoomPassword});
+      this.makeNewRoom({ newRoomName, newRoomId, newRoomPassword });
       this.newDialog = false;
       this.roomName = "";
       this.roomId = "";

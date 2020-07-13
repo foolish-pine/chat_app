@@ -69,6 +69,7 @@ export default new Vuex.Store({
     doLogout({ commit }) {
       firebase.auth().signOut();
       commit("doLogout");
+      commit("toggleSideMenu");
     },
     // ユーザー情報のセット
     setLoginUser({ commit }, user) {
@@ -133,12 +134,14 @@ export default new Vuex.Store({
               roomId: newRoomId,
             })
             .then(() => {
-              dispatch("fetchMyRooms");
               dispatch("changeRoomAndFetchMessages", newRoomId);
-              router.push({
-                name: "room",
-                params: { roomId: newRoomId },
-              });
+              router.push(
+                {
+                  name: "room",
+                  params: { roomId: newRoomId },
+                },
+                () => {}
+              );
             });
         });
     },
@@ -163,12 +166,14 @@ export default new Vuex.Store({
                     roomId: doc.get("roomId"),
                   })
                   .then(() => {
-                    dispatch("fetchMyRooms");
                     dispatch("changeRoomAndFetchMessages", searchedId);
-                    router.push({
-                      name: "room",
-                      params: { roomId: searchedId },
-                    });
+                    router.push(
+                      {
+                        name: "room",
+                        params: { roomId: searchedId },
+                      },
+                      () => {}
+                    );
                   });
               }
             });
@@ -244,6 +249,26 @@ export default new Vuex.Store({
           },
           () => {}
         );
+    },
+    // 現在のルームから退出する
+    exitRoom({ getters, commit }) {
+      firebase
+        .firestore()
+        .collection(`users/${getters.uid}/myRooms`)
+        .doc(getters.currentRoomId)
+        .delete()
+        .then(() => {
+          router.push(
+            {
+              name: "home",
+            },
+            () => {}
+          );
+          commit("updateCurrentRoomNameAndId", {
+            roomName: "",
+            roomId: "",
+          });
+        });
     },
   },
   getters: {
