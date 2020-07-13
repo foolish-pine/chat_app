@@ -14,22 +14,12 @@
 
 <script>
 import { mapActions, mapGetters } from "vuex";
-import firebase from "firebase";
 
 export default {
   name: "Home",
   components: {},
-  created() {
-    firebase.auth().onAuthStateChanged(user => {
-      if (user) {
-        if (this.$router.currentRoute.name !== "home") {
-          this.$router.push({ name: "home" });
-        }
-      }
-    });
-  },
   methods: {
-    ...mapActions(["doLogin", "doAnonymousLogin", "setLoginUser"])
+    ...mapActions(["doLogin", "doAnonymousLogin", "currentRoomId"])
   },
   computed: {
     ...mapGetters(["uid"])

@@ -27,8 +27,6 @@ export default {
     return {
     };
   },
-  created () {
-  },
   methods: {
     ...mapActions(["doUpdateInput", "doSend"]),
     onInput(input) {
