@@ -1,16 +1,22 @@
 <template>
-  <v-app>
+  <v-app style="background-color: #fafafa">
     <header>
       <v-app-bar app dark color="#41b883" height="80">
         <!-- ログイン時にサイドバーアイコンと現在のルーム名を表示 -->
-        <v-app-bar-nav-icon v-show="$store.state.user.uid" @click.stop="toggleSideMenu"></v-app-bar-nav-icon>
-        <v-toolbar-title class="title" v-if="$store.state.user.uid && this.$router.currentRoute.name !== 'home'">{{ $store.state.currentRoomName }}</v-toolbar-title>
+        <v-app-bar-nav-icon v-show="uid" @click.stop="toggleSideMenu"></v-app-bar-nav-icon>
+        <v-toolbar-title
+          class="title"
+          v-if="uid && this.$router.currentRoute.name !== 'home'"
+        >{{ $store.state.currentRoomName }}</v-toolbar-title>
         <v-spacer></v-spacer>
 
         <div v-if="uid" key="login" class="d-flex align-center">
           <v-avatar size="40" class="mr-3">
             <img v-if="photoURL" :src="photoURL" />
-            <img v-if="$store.state.user.isAnonymous" src="https://lh3.googleusercontent.com/ogw/ADGmqu95-Y5rL3aQFoJyII44uS-7RKoRDenRcWEqEfQM=s64-c-mo"/>
+            <img
+              v-if="$store.state.user.isAnonymous"
+              src="https://lh3.googleusercontent.com/ogw/ADGmqu95-Y5rL3aQFoJyII44uS-7RKoRDenRcWEqEfQM=s64-c-mo"
+            />
           </v-avatar>
           <v-btn @click="doLogout" outlined>ログアウト</v-btn>
         </div>
@@ -30,8 +36,7 @@ export default {
     SideNav
   },
   data() {
-    return {
-    };
+    return {};
   },
   created() {
     firebase.auth().onAuthStateChanged(user => {
@@ -52,14 +57,12 @@ export default {
     ...mapActions([
       "toggleSideMenu",
       "setLoginUser",
-      "doLogin",
-      "doAnonymousLogin",
       "doLogout",
       "fetchMyRooms"
     ])
   },
   computed: {
-    ...mapGetters(["uid", "photoURL", "currentRoomId"]),
+    ...mapGetters(["uid", "photoURL"])
   }
 };
 </script>

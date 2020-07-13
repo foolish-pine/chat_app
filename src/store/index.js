@@ -1,5 +1,6 @@
 import Vue from "vue";
 import Vuex from "vuex";
+import router from "../router/index";
 import firebase from "firebase";
 
 Vue.use(Vuex);
@@ -15,9 +16,6 @@ export default new Vuex.Store({
     currentRoomId: "", // 現在のルームID
   },
   mutations: {
-    setDrawer(state, val) {
-      state.drawer = val;
-    },
     toggleSideMenu(state) {
       state.drawer = !state.drawer;
     },
@@ -41,23 +39,18 @@ export default new Vuex.Store({
       // stateのmessagesに取得したメッセージを追加する
       state.messages.push(fetchedMessage);
     },
-    doSend(state) {
+    clearInput(state) {
       state.input = "";
     },
     fetchMyRooms(state, { roomName, roomId }) {
       state.myRooms.push({ roomName, roomId });
     },
-    changeCurrentRoomId(state, roomId) {
-      state.currentRoomId = roomId;
-    },
-    changeCurrentRoomName(state, roomName) {
+    updateCurrentRoomNameAndId(state, { roomName, roomId }) {
       state.currentRoomName = roomName;
+      state.currentRoomId = roomId;
     },
   },
   actions: {
-    setDrawer({ commit }, val) {
-      commit("setDrawer", val);
-    },
     toggleSideMenu({ commit }) {
       commit("toggleSideMenu");
     },
@@ -99,8 +92,8 @@ export default new Vuex.Store({
         const now = new Date(firebase.firestore.Timestamp.now().seconds * 1000);
         const hours = ("0" + now.getHours()).slice(-2);
         const minutes = ("0" + now.getMinutes()).slice(-2);
-        this.timestamp = now;
-        this.posttime = `${hours}:${minutes}`; // 投稿時刻
+        const timestamp = now;
+        const posttime = `${hours}:${minutes}`; // 投稿時刻
         // firebase にメッセージを追加
         firebase
           .firestore()
@@ -109,12 +102,110 @@ export default new Vuex.Store({
             message: getters.input,
             name: getters.displayName,
             image: getters.photoURL,
-            timestamp: this.timestamp,
-            posttime: this.posttime,
+            timestamp: timestamp,
+            posttime: posttime,
             uid: getters.uid,
           });
-        commit("doSend");
+        commit("clearInput");
       }
+    },
+    // 新しいルームを作成する
+    makeNewRoom(
+      { getters, dispatch },
+      { newRoomName, newRoomId, newRoomPassword }
+    ) {
+      firebase
+        .firestore()
+        .collection("rooms")
+        .doc(newRoomId)
+        .set({
+          roomName: newRoomName,
+          roomId: newRoomId,
+          roomPassword: newRoomPassword,
+        })
+        .then(() => {
+          firebase
+            .firestore()
+            .collection(`users/${getters.uid}/myRooms`)
+            .doc(newRoomId)
+            .set({
+              roomName: newRoomName,
+              roomId: newRoomId,
+            })
+            .then(() => {
+              dispatch("fetchMyRooms");
+              dispatch("changeRoomAndFetchMessages", newRoomId);
+              router.push({
+                name: "room",
+                params: { roomId: newRoomId },
+              });
+            });
+        });
+    },
+    // ルームに参加する
+    joinRoom({ getters, dispatch }, { searchedId, searchedRoomPassword }) {
+      firebase
+        .firestore()
+        .collection("rooms")
+        .onSnapshot(
+          (snapshot) => {
+            snapshot.forEach((doc) => {
+              if (
+                doc.get("roomId") === searchedId &&
+                doc.get("roomPassword") === searchedRoomPassword
+              ) {
+                firebase
+                  .firestore()
+                  .collection(`users/${getters.uid}/myRooms`)
+                  .doc(searchedId)
+                  .set({
+                    roomName: doc.get("roomName"),
+                    roomId: doc.get("roomId"),
+                  })
+                  .then(() => {
+                    dispatch("fetchMyRooms");
+                    dispatch("changeRoomAndFetchMessages", searchedId);
+                    router.push({
+                      name: "room",
+                      params: { roomId: searchedId },
+                    });
+                  });
+              }
+            });
+          },
+          () => {}
+        );
+    },
+    // ルームを変更し、変更先のメッセージを取得
+    changeRoomAndFetchMessages({ dispatch, commit }, roomId) {
+      dispatch("updateCurrentRoomNameAndId", roomId);
+      firebase
+        .firestore()
+        .collection(`rooms/${roomId}/messages`)
+        .orderBy("timestamp", "asc")
+        .onSnapshot(
+          (snapshot) => {
+            dispatch("clearMessages");
+            snapshot.forEach((doc) =>
+              commit("addMessage", { id: doc.id, fetchedMessage: doc.data() })
+            );
+          },
+          () => {}
+        );
+    },
+    // ルームIDに応じてcurrentRoomNameとcurrentRoomIdを更新
+    updateCurrentRoomNameAndId({ commit }, roomId) {
+      firebase
+        .firestore()
+        .collection("rooms")
+        .doc(roomId)
+        .get()
+        .then((doc) => {
+          commit("updateCurrentRoomNameAndId", {
+            roomName: doc.data().roomName,
+            roomId: doc.data().roomId,
+          });
+        });
     },
     // ルームのメッセージを取得
     fetchMessages({ getters, dispatch, commit }) {
@@ -153,35 +244,6 @@ export default new Vuex.Store({
           },
           () => {}
         );
-    },
-    // ルームを変更し、変更先のメッセージを取得
-    changeRoomAndFetchMessages({ dispatch, commit }, roomId) {
-      firebase
-        .firestore()
-        .collection(`rooms/${roomId}/messages`)
-        .orderBy("timestamp", "asc")
-        .onSnapshot(
-          (snapshot) => {
-            dispatch("clearMessages");
-            dispatch("changeCurrentRoomName", roomId);
-            commit("changeCurrentRoomId", roomId);
-            snapshot.forEach((doc) =>
-              commit("addMessage", { id: doc.id, fetchedMessage: doc.data() })
-            );
-          },
-          () => {}
-        );
-    },
-    // ルームIDに応じてルーム名を変更
-    changeCurrentRoomName({ commit }, roomId) {
-      firebase
-        .firestore()
-        .collection("rooms")
-        .doc(roomId)
-        .get()
-        .then((doc) => {
-          commit("changeCurrentRoomName", doc.data().roomName);
-        });
     },
   },
   getters: {
