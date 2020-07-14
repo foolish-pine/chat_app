@@ -48,7 +48,9 @@
                   <v-text-field
                     label="Room Password"
                     v-model="newRoomPassword"
-                    type="password"
+                    :append-icon="showMakeRoomPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                    @click:append="showMakeRoomPassword = !showMakeRoomPassword"
+                    :type="showMakeRoomPassword ? 'text' : 'password'"
                     required
                   ></v-text-field>
                 </v-col>
@@ -91,8 +93,10 @@
                 <v-col cols="12">
                   <v-text-field
                     label="Room Password"
+                    :append-icon="showJoinRoomPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                    @click:append="showJoinRoomPassword = !showJoinRoomPassword"
+                    :type="showJoinRoomPassword ? 'text' : 'password'"
                     v-model="searchedRoomPassword"
-                    type="password"
                     required
                   ></v-text-field>
                 </v-col>
@@ -140,7 +144,9 @@ export default {
   data() {
     return {
       newDialog: false,
+      showMakeRoomPassword: false,
       joinDialog: false,
+      showJoinRoomPassword: false,
       newRoomName: "", // 新規作成するルームの名前
       newRoomId: "", // 新規作成するルームのID
       newRoomPassword: "", // 新規作成するルームのパスワード
@@ -149,17 +155,21 @@ export default {
     };
   },
   methods: {
-    ...mapActions(["doLogout","exitRoom", "makeNewRoom", "joinRoom", "changeRoomAndFetchMessages"]),
+    ...mapActions([
+      "doLogout",
+      "exitRoom",
+      "makeNewRoom",
+      "joinRoom",
+      "changeRoomAndFetchMessages"
+    ]),
     makeAndJoinNewRoom(newRoomName, newRoomId, newRoomPassword) {
       this.makeNewRoom({ newRoomName, newRoomId, newRoomPassword });
-      this.newDialog = false;
-      this.roomName = "";
-      this.roomId = "";
-      this.roomPassword = "";
+      this.newRoomName = "";
+      this.newRoomId = "";
+      this.newRoomPassword = "";
     },
     searchAndJoinRoom(searchedId, searchedRoomPassword) {
       this.joinRoom({ searchedId, searchedRoomPassword });
-      this.joinDialog = false;
       this.searchedId = "";
       this.searchedRoomPassword = "";
     }

@@ -47,7 +47,6 @@ export default {
           this.$router.push({ name: "home" }, () => {});
         }
       } else {
-        this.doLogout(user);
         this.$router.push({ name: "home" }, () => {});
       }
     });
@@ -56,7 +55,7 @@ export default {
     ...mapActions([
       "toggleSideMenu",
       "setLoginUser",
-      "fetchMyRooms"
+      "fetchMyRooms",
     ])
   },
   computed: {
