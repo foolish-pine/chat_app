@@ -132,25 +132,27 @@ export default new Vuex.Store({
             .set({
               roomName: newRoomName,
               roomId: newRoomId,
-            })
-            .then(() => {
-              dispatch("changeRoomAndFetchMessages", newRoomId);
-              router.push(
-                {
-                  name: "room",
-                  params: { roomId: newRoomId },
-                },
-                () => {}
-              );
             });
-        });
+        })
+        .then(() => {
+          dispatch("changeRoomAndFetchMessages", newRoomId);
+          router.push(
+            {
+              name: "room",
+              params: { roomId: newRoomId },
+            },
+            () => {}
+          );
+        })
+        .catch(() => {});
     },
     // ルームに参加する
     joinRoom({ getters, dispatch }, { searchedId, searchedRoomPassword }) {
       firebase
         .firestore()
         .collection("rooms")
-        .onSnapshot(
+        .get()
+        .then(
           (snapshot) => {
             snapshot.forEach((doc) => {
               if (
