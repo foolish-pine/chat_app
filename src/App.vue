@@ -52,11 +52,7 @@ export default {
     });
   },
   methods: {
-    ...mapActions([
-      "toggleSideMenu",
-      "setLoginUser",
-      "fetchMyRooms",
-    ])
+    ...mapActions(["toggleSideMenu", "setLoginUser", "fetchMyRooms"])
   },
   computed: {
     ...mapGetters(["uid", "photoURL"])
