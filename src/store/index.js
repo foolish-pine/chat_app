@@ -101,7 +101,7 @@ export default new Vuex.Store({
     doSend({ getters, commit }) {
       if (getters.uid && getters.input.length) {
         const timestamp = firebase.firestore.FieldValue.serverTimestamp();
-        // // firebase にメッセージを追加
+        // firebase にメッセージを追加
         firebase
           .firestore()
           .collection(`rooms/${getters.currentRoomId}/messages`)
@@ -110,7 +110,6 @@ export default new Vuex.Store({
             name: getters.displayName,
             image: getters.photoURL,
             timestamp: timestamp,
-            // posttime: posttime,
             uid: getters.uid,
           });
         commit("clearInput");
