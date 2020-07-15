@@ -10,7 +10,7 @@ export default new Vuex.Store({
     drawer: false,
     user: {}, // ユーザー情報
     input: "", // 入力したメッセージ
-    messages: [], // ルーム内のメッセージ
+    messages: new Map(), // ルーム内のメッセージ;
     myRooms: [], // ユーザーが参加済みのルーム
     currentRoomName: "", // 現在のルーム名
     currentRoomId: "", // 現在のルームID
@@ -23,7 +23,7 @@ export default new Vuex.Store({
       state.user = user;
     },
     clearMessages(state) {
-      state.messages = [];
+      state.messages = new Map();
     },
     clearMyRooms(state) {
       state.myRooms = [];
@@ -36,8 +36,18 @@ export default new Vuex.Store({
     },
     addMessage(state, { id, fetchedMessage }) {
       fetchedMessage.id = id;
+      const date =
+        fetchedMessage.timestamp && fetchedMessage.timestamp.toDate();
+      const dateString = date && date.toLocaleDateString();
+      const hours = date && ("0" + date.getHours()).slice(-2);
+      const minutes = date && ("0" + date.getMinutes()).slice(-2);
+      if (hours !== null && minutes !== null)
+        // 投稿時刻
+        fetchedMessage.posttime = `${hours}:${minutes}`;
       // stateのmessagesに取得したメッセージを追加する
-      state.messages.push(fetchedMessage);
+      state.messages.has(dateString)
+        ? state.messages.get(dateString).push(fetchedMessage)
+        : state.messages.set(dateString, [fetchedMessage]);
     },
     clearInput(state) {
       state.input = "";
@@ -90,12 +100,8 @@ export default new Vuex.Store({
     // メッセージの送信
     doSend({ getters, commit }) {
       if (getters.uid && getters.input.length) {
-        const now = new Date(firebase.firestore.Timestamp.now().seconds * 1000);
-        const hours = ("0" + now.getHours()).slice(-2);
-        const minutes = ("0" + now.getMinutes()).slice(-2);
-        const timestamp = now;
-        const posttime = `${hours}:${minutes}`; // 投稿時刻
-        // firebase にメッセージを追加
+        const timestamp = firebase.firestore.FieldValue.serverTimestamp();
+        // // firebase にメッセージを追加
         firebase
           .firestore()
           .collection(`rooms/${getters.currentRoomId}/messages`)
@@ -104,7 +110,7 @@ export default new Vuex.Store({
             name: getters.displayName,
             image: getters.photoURL,
             timestamp: timestamp,
-            posttime: posttime,
+            // posttime: posttime,
             uid: getters.uid,
           });
         commit("clearInput");
