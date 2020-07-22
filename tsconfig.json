@@ -14,7 +14,7 @@
     "baseUrl": ".",
     "types": [
       "webpack-env",
-      "vuetify"
+      "vuetify",
     ],
     "paths": {
       "@/*": [
@@ -37,5 +37,5 @@
   ],
   "exclude": [
     "node_modules"
-  ]
+  ],
 }
