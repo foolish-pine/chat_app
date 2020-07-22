@@ -12,19 +12,24 @@
   </v-content>
 </template>
 
-<script>
-import { mapActions, mapGetters } from "vuex";
+<script lang="ts">
+import { Component, Vue } from "vue-property-decorator";
+import AppModule from "../store/modules/app";
 
-export default {
-  name: "Home",
-  components: {},
-  methods: {
-    ...mapActions(["doLogin", "doAnonymousLogin", "currentRoomId"])
-  },
-  computed: {
-    ...mapGetters(["uid"])
+@Component
+export default class Home extends Vue {
+  get uid(): string {
+    return AppModule.uid;
   }
-};
+
+  doLogin() {
+    AppModule.doLoginAction();
+  }
+
+  doAnonymousLogin() {
+    AppModule.doAnonymousLoginAction();
+  }
+}
 </script>
 
 <style lang="scss" scoped>

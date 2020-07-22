@@ -1,19 +1,16 @@
 <template>
-  <v-navigation-drawer v-model="$store.state.drawer" fixed temporary>
+  <v-navigation-drawer v-model="drawer" fixed temporary>
     <v-list>
       <v-list-item>
         <v-list-item-avatar>
           <!-- ユーザーのアバターを表示 -->
           <img v-if="photoURL" :src="photoURL" />
-          <img
-            v-if="$store.state.user.isAnonymous"
-            src="https://lh3.googleusercontent.com/ogw/ADGmqu95-Y5rL3aQFoJyII44uS-7RKoRDenRcWEqEfQM=s64-c-mo"
-          />
+          <img v-else src="../assets/anonymous-avatar.png" />
         </v-list-item-avatar>
         <v-list-item-content>
           <!-- ユーザー名を表示 -->
-          <v-list-item-title v-if="$store.state.user.isAnonymous">ゲストさん</v-list-item-title>
           <v-list-item-title v-if="displayName">{{ displayName }}</v-list-item-title>
+          <v-list-item-title v-else>ゲストさん</v-list-item-title>
         </v-list-item-content>
       </v-list-item>
 
@@ -31,7 +28,7 @@
             </v-list-item-content>
           </v-list-item>
         </template>
-        <v-card>
+        <v-card class="pa-5">
           <v-card-title>
             <span class="headline">New Talk Room</span>
           </v-card-title>
@@ -59,11 +56,12 @@
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn color="blue darken-1" text @click="newDialog = false">Close</v-btn>
+            <v-btn class="subtitle-1" color="blue darken-1" text @click="newDialog = false">Close</v-btn>
             <v-btn
+              class="subtitle-1"
               color="blue darken-1"
               text
-              @click="makeAndJoinNewRoom(newRoomName, newRoomId, newRoomPassword)"
+              @click="makeNewRoom(newRoomName, newRoomId, newRoomPassword)"
             >Make</v-btn>
           </v-card-actions>
         </v-card>
@@ -80,7 +78,7 @@
             </v-list-item-content>
           </v-list-item>
         </template>
-        <v-card>
+        <v-card class="pa-5">
           <v-card-title>
             <span class="headline">Join</span>
           </v-card-title>
@@ -105,18 +103,19 @@
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn color="blue darken-1" text @click="joinDialog = false">Close</v-btn>
+            <v-btn class="subtitle-1" color="blue darken-1" text @click="joinDialog = false">Close</v-btn>
             <v-btn
+              class="subtitle-1"
               color="blue darken-1"
               text
-              @click="searchAndJoinRoom(searchedId, searchedRoomPassword)"
+              @click="joinRoom(searchedId, searchedRoomPassword)"
             >Join</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
       <!-- ユーザーが参加済みのルームを表示する -->
       <v-list-item
-        v-for="{roomName, roomId} in $store.state.myRooms"
+        v-for="{roomName, roomId} in myRooms"
         :key="roomId"
         :to="{ name: 'room', params: {roomId: roomId} }"
         @click="changeRoomAndFetchMessages(roomId)"
@@ -131,53 +130,88 @@
     </v-list>
     <template v-slot:append>
       <div v-if="uid" class="align-center pa-2">
-        <v-btn @click="exitRoom" block class="mb-2">現在のルームから退出</v-btn>
-        <v-btn @click="doLogout" block color="error">ログアウト</v-btn>
+        <v-btn class="mb-2" @click="exitRoom" block :disabled="routeName === 'home'">現在のルームから退出</v-btn>
+        <v-btn @click="doLogout" color="error" block>ログアウト</v-btn>
       </div>
     </template>
   </v-navigation-drawer>
 </template>
 
-<script>
-import { mapActions, mapGetters } from "vuex";
-export default {
-  data() {
-    return {
-      newDialog: false,
-      showMakeRoomPassword: false,
-      joinDialog: false,
-      showJoinRoomPassword: false,
-      newRoomName: "", // 新規作成するルームの名前
-      newRoomId: "", // 新規作成するルームのID
-      newRoomPassword: "", // 新規作成するルームのパスワード
-      searchedId: "", // ルーム参加フォームに入力したID
-      searchedRoomPassword: "" // ルーム参加フォームに入力したパスワード
-    };
-  },
-  methods: {
-    ...mapActions([
-      "doLogout",
-      "exitRoom",
-      "makeNewRoom",
-      "joinRoom",
-      "changeRoomAndFetchMessages"
-    ]),
-    makeAndJoinNewRoom(newRoomName, newRoomId, newRoomPassword) {
-      this.makeNewRoom({ newRoomName, newRoomId, newRoomPassword });
-      this.newRoomName = "";
-      this.newRoomId = "";
-      this.newRoomPassword = "";
-    },
-    searchAndJoinRoom(searchedId, searchedRoomPassword) {
-      this.joinRoom({ searchedId, searchedRoomPassword });
-      this.searchedId = "";
-      this.searchedRoomPassword = "";
-    }
-  },
-  computed: {
-    ...mapGetters(["photoURL", "displayName", "uid"])
+<script lang="ts">
+import { Component, Vue, Watch } from "vue-property-decorator";
+import AppModule from "../store/modules/app";
+
+@Component
+export default class SideNav extends Vue {
+  routeName: "home" | "room" = "home";
+  newDialog: boolean = false;
+  showMakeRoomPassword: boolean = false;
+  joinDialog: boolean = false;
+  showJoinRoomPassword: boolean = false;
+  newRoomName: string = ""; // 新規作成するルームの名前
+  newRoomId: string = ""; // 新規作成するルームのID
+  newRoomPassword: string = ""; // 新規作成するルームのパスワード
+  searchedId: string = ""; // ルーム参加フォームに入力したID
+  searchedRoomPassword: string = ""; // ルーム参加フォームに入力したパスワード
+
+  @Watch("$route")
+  changeRoute(to: any) {
+    this.routeName = to.name;
   }
-};
+
+  get drawer(): boolean {
+    return AppModule.drawer;
+  }
+
+  set drawer(value) {
+    AppModule.setToggleSideMenuAction(value);
+  }
+
+  get uid(): string {
+    return AppModule.uid;
+  }
+
+  get photoURL(): string | null {
+    return AppModule.photoURL;
+  }
+
+  get displayName(): string | null {
+    return AppModule.displayName;
+  }
+
+  get myRooms(): { roomName: string; roomId: string }[] {
+    return AppModule.myRooms;
+  }
+
+  get isExitRoomDisabled(): boolean {
+    return this.$router.currentRoute.name === "home";
+  }
+
+  makeNewRoom(newRoomName: string, newRoomId: string, newRoomPassword: string) {
+    AppModule.makeNewRoomAction({ newRoomName, newRoomId, newRoomPassword });
+    this.newRoomName = "";
+    this.newRoomId = "";
+    this.newRoomPassword = "";
+  }
+
+  joinRoom(searchedId: string, searchedRoomPassword: string) {
+    AppModule.joinRoomAction({ searchedId, searchedRoomPassword });
+    this.searchedId = "";
+    this.searchedRoomPassword = "";
+  }
+
+  changeRoomAndFetchMessages(roomId: string) {
+    AppModule.changeRoomAndFetchMessagesAction(roomId);
+  }
+
+  exitRoom() {
+    AppModule.exitRoomAction();
+  }
+
+  doLogout() {
+    AppModule.doLogoutAction();
+  }
+}
 </script>
 
 <style lang="scss" scoped>
