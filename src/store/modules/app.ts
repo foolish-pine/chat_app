@@ -12,6 +12,8 @@ import "firebase/auth";
 import "firebase/firestore";
 import { FetchedMessage } from "../modules/types";
 
+let unsubscribe: any; // firestore.collection().onSnapshot()を格納する（リスナーのデタッチ用）
+
 @Module({ dynamic: true, store, name: "AppModule", namespaced: true })
 class AppModule extends VuexModule {
   drawer: boolean = false;
@@ -257,8 +259,9 @@ class AppModule extends VuexModule {
   // ルームを変更し、変更先のメッセージを取得
   @Action
   changeRoomAndFetchMessagesAction(roomId: string) {
+    if (unsubscribe) unsubscribe();
     this.updateCurrentRoomNameAndIdAction(roomId);
-    firebase
+    unsubscribe = firebase
       .firestore()
       .collection(`rooms/${roomId}/messages`)
       .orderBy("timestamp", "asc")
@@ -299,31 +302,31 @@ class AppModule extends VuexModule {
   }
 
   // ルームのメッセージを取得
-  @Action
-  fetchMessagesAction() {
-    firebase
-      .firestore()
-      .collection(`rooms/${this.currentRoomId}/messages`)
-      .orderBy("timestamp", "asc")
-      .onSnapshot(
-        (snapshot) => {
-          this.clearMessages();
-          snapshot.forEach((doc) =>
-            this.addMessage({
-              fetchedMessage: {
-                id: doc.id,
-                name: doc.get("name"),
-                uid: doc.get("uid"),
-                image: doc.get("image"),
-                message: doc.get("message"),
-                timestamp: doc.get("timestamp"),
-              },
-            })
-          );
-        },
-        () => {}
-      );
-  }
+  // @Action
+  // fetchMessagesAction() {
+  //   firebase
+  //     .firestore()
+  //     .collection(`rooms/${this.currentRoomId}/messages`)
+  //     .orderBy("timestamp", "asc")
+  //     .onSnapshot(
+  //       (snapshot) => {
+  //         this.clearMessages();
+  //         snapshot.forEach((doc) =>
+  //           this.addMessage({
+  //             fetchedMessage: {
+  //               id: doc.id,
+  //               name: doc.get("name"),
+  //               uid: doc.get("uid"),
+  //               image: doc.get("image"),
+  //               message: doc.get("message"),
+  //               timestamp: doc.get("timestamp"),
+  //             },
+  //           })
+  //         );
+  //       },
+  //       () => {}
+  //     );
+  // }
 
   // ユーザーが参加済みのルームを取得
   @Action
