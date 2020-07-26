@@ -5,7 +5,6 @@
       <v-app-bar-nav-icon @click.stop="toggleSideMenu"></v-app-bar-nav-icon>
       <v-toolbar-title
         class="title"
-        v-if="this.$router.currentRoute.name !== 'home'"
       >{{ currentRoomName }}</v-toolbar-title>
 
       <v-spacer></v-spacer>
