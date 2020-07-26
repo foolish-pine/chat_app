@@ -2,12 +2,12 @@ import Vue from "vue";
 import App from "./App.vue";
 import store from "./store";
 import router from "./router";
-import firebase from "firebase";
+import * as firebase from "firebase/app";
 import vuetify from "./plugins/vuetify";
 
 Vue.config.productionTip = false;
 
-var firebaseConfig = {
+const firebaseConfig = {
   apiKey: "AIzaSyAhHezS15Tqh7cHjbKQJmGvuZiHVwIoqcA",
   authDomain: "chat-app-e38c9.firebaseapp.com",
   databaseURL: "https://chat-app-e38c9.firebaseio.com",
