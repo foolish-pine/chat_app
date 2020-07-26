@@ -7,7 +7,9 @@ import {
 } from "vuex-module-decorators";
 import store from "@/store";
 import router from "@/router";
-import firebase from "firebase";
+import * as firebase from "firebase/app";
+import "firebase/auth";
+import "firebase/firestore";
 import { FetchedMessage } from "../modules/types";
 
 @Module({ dynamic: true, store, name: "AppModule", namespaced: true })

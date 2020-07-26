@@ -8,7 +8,8 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import firebase from "firebase";
+import * as firebase from "firebase/app";
+import "firebase/auth";
 import HeaderItem from "./components/HeaderItem.vue";
 import SideNav from "./components/SideNav.vue";
 import AppModule from "./store/modules/app";

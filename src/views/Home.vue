@@ -2,12 +2,14 @@
   <v-content class="fv">
     <v-container text-center justify-center>
       <h1 class="display-2 mb-10">Pine's Chat App</h1>
-      <div v-if="!uid" class="align-center mb-5">
-        <v-btn @click="doAnonymousLogin" large dark color="#41b883">匿名でログイン</v-btn>
-      </div>
-      <div v-if="!uid" class="align-center">
-        <v-btn @click="doLogin" large dark color="#41b883">Googleアカウントでログイン</v-btn>
-      </div>
+      <template v-if="!uid">
+        <div class="align-center mb-5">
+          <v-btn @click="doAnonymousLogin" large dark color="#41b883">匿名でログイン</v-btn>
+        </div>
+        <div class="align-center">
+          <v-btn @click="doLogin" large dark color="#41b883">Googleアカウントでログイン</v-btn>
+        </div>
+      </template>
     </v-container>
   </v-content>
 </template>
