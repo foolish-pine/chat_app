@@ -18,10 +18,10 @@ let unsubscribe: any; // firestore.collection().onSnapshot()を格納する（�
 class AppModule extends VuexModule {
   drawer: boolean = false;
   user: firebase.User | null = null; // ユーザー情報
-  messages: Map<string, FetchedMessage[]> = new Map(); // ルーム内のメッセージ;
   myRooms: { roomName: string; roomId: string }[] = []; // ユーザーが参加済みのルーム
   currentRoomName: string = ""; // 現在のルーム名
   currentRoomId: string = ""; // 現在のルームID
+  messages: Map<string, FetchedMessage[]> = new Map(); // ルーム内のメッセージ;
 
   get uid(): string {
     return this.user ? this.user.uid : "";
@@ -63,6 +63,10 @@ class AppModule extends VuexModule {
   @Mutation
   doLogout() {
     this.user = null;
+    this.myRooms = [];
+    this.currentRoomName = "";
+    this.currentRoomId = "";
+    this.messages = new Map();
   }
 
   @Mutation
