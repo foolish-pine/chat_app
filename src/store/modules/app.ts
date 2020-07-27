@@ -199,7 +199,10 @@ class AppModule extends VuexModule {
           });
       })
       .then(() => {
-        this.changeRoomAndFetchMessagesAction(newRoomId);
+        this.changeRoomAndFetchMessagesAction({
+          roomName: newRoomName,
+          roomId: newRoomId,
+        });
         router.push(
           {
             name: "room",
@@ -231,16 +234,19 @@ class AppModule extends VuexModule {
               doc.get("roomId") === searchedId &&
               doc.get("roomPassword") === searchedRoomPassword
             ) {
+              const roomName = doc.get("roomName");
+              const roomId = doc.get("roomId");
+
               firebase
                 .firestore()
                 .collection(`users/${this.uid}/myRooms`)
                 .doc(searchedId)
                 .set({
-                  roomName: doc.get("roomName"),
-                  roomId: doc.get("roomId"),
+                  roomName: roomName,
+                  roomId: roomId,
                 })
                 .then(() => {
-                  this.changeRoomAndFetchMessagesAction(searchedId);
+                  this.changeRoomAndFetchMessagesAction({ roomName, roomId });
                   router.push(
                     {
                       name: "room",
@@ -258,9 +264,16 @@ class AppModule extends VuexModule {
 
   // ルームを変更し、変更先のメッセージを取得
   @Action
-  changeRoomAndFetchMessagesAction(roomId: string) {
+  changeRoomAndFetchMessagesAction({
+    roomName,
+    roomId,
+  }: {
+    roomName: string;
+    roomId: string;
+  }) {
+    // 変更前のルームのonSnapShotリスナーをデタッチする
     if (unsubscribe) unsubscribe();
-    this.updateCurrentRoomNameAndIdAction(roomId);
+    this.updateCurrentRoomNameAndIdAction({ roomName, roomId });
     unsubscribe = firebase
       .firestore()
       .collection(`rooms/${roomId}/messages`)
@@ -287,46 +300,18 @@ class AppModule extends VuexModule {
 
   // ルームIDに応じてcurrentRoomNameとcurrentRoomIdを更新
   @Action
-  updateCurrentRoomNameAndIdAction(roomId: string) {
-    firebase
-      .firestore()
-      .collection("rooms")
-      .doc(roomId)
-      .get()
-      .then((doc) => {
-        this.updateCurrentRoomNameAndId({
-          roomName: doc.get("roomName"),
-          roomId: doc.get("roomId"),
-        });
-      });
+  updateCurrentRoomNameAndIdAction({
+    roomName,
+    roomId,
+  }: {
+    roomName: string;
+    roomId: string;
+  }) {
+    this.updateCurrentRoomNameAndId({
+      roomName: roomName,
+      roomId: roomId,
+    });
   }
-
-  // ルームのメッセージを取得
-  // @Action
-  // fetchMessagesAction() {
-  //   firebase
-  //     .firestore()
-  //     .collection(`rooms/${this.currentRoomId}/messages`)
-  //     .orderBy("timestamp", "asc")
-  //     .onSnapshot(
-  //       (snapshot) => {
-  //         this.clearMessages();
-  //         snapshot.forEach((doc) =>
-  //           this.addMessage({
-  //             fetchedMessage: {
-  //               id: doc.id,
-  //               name: doc.get("name"),
-  //               uid: doc.get("uid"),
-  //               image: doc.get("image"),
-  //               message: doc.get("message"),
-  //               timestamp: doc.get("timestamp"),
-  //             },
-  //           })
-  //         );
-  //       },
-  //       () => {}
-  //     );
-  // }
 
   // ユーザーが参加済みのルームを取得
   @Action

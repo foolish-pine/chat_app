@@ -118,7 +118,7 @@
         v-for="{roomName, roomId} in myRooms"
         :key="roomId"
         :to="{ name: 'room', params: {roomId: roomId} }"
-        @click="changeRoomAndFetchMessages(roomId)"
+        @click="changeRoomAndFetchMessages(roomName, roomId)"
       >
         <v-list-item-icon>
           <v-icon>mdi-account-group</v-icon>
@@ -200,8 +200,8 @@ export default class SideNav extends Vue {
     this.searchedRoomPassword = "";
   }
 
-  changeRoomAndFetchMessages(roomId: string) {
-    AppModule.changeRoomAndFetchMessagesAction(roomId);
+  changeRoomAndFetchMessages(roomName: string, roomId: string) {
+    AppModule.changeRoomAndFetchMessagesAction({roomName, roomId});
   }
 
   exitRoom() {
