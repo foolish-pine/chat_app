@@ -301,33 +301,6 @@ class AppModule extends VuexModule {
       });
   }
 
-  // ルームのメッセージを取得
-  // @Action
-  // fetchMessagesAction() {
-  //   firebase
-  //     .firestore()
-  //     .collection(`rooms/${this.currentRoomId}/messages`)
-  //     .orderBy("timestamp", "asc")
-  //     .onSnapshot(
-  //       (snapshot) => {
-  //         this.clearMessages();
-  //         snapshot.forEach((doc) =>
-  //           this.addMessage({
-  //             fetchedMessage: {
-  //               id: doc.id,
-  //               name: doc.get("name"),
-  //               uid: doc.get("uid"),
-  //               image: doc.get("image"),
-  //               message: doc.get("message"),
-  //               timestamp: doc.get("timestamp"),
-  //             },
-  //           })
-  //         );
-  //       },
-  //       () => {}
-  //     );
-  // }
-
   // ユーザーが参加済みのルームを取得
   @Action
   fetchMyRoomsAction() {
